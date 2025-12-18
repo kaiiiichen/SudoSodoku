@@ -32,7 +32,7 @@ A terminal-style Sudoku experience for iOS, designed for logical purists.
 ## **🚀 Building the Project**
 
 1. Clone the repository:  
-   git clone \[https://github.com/kaiiiichen/SudoSodoku.git\](https://github.com/kaiiiichen/SudoSodoku.git)
+   git clone [https://github.com/kaiiiichen/SudoSodoku.git](https://github.com/kaiiiichen/SudoSodoku.git)
 
 2. Open SudokuMVP.xcodeproj in Xcode 15+.  
 3. Change the **Bundle Identifier** and **Team** in "Signing & Capabilities" to your own Apple Developer account.  
