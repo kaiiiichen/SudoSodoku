@@ -1,0 +1,57 @@
+# Xcode
+
+build/
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata/
+*.xccheckout
+*.moved-aside
+DerivedData/
+*.hmap
+*.ipa
+*.xcuserstate
+
+# Swift Package Manager
+
+.build/
+
+# CocoaPods
+
+# We recommend against adding the Pods directory to your .gitignore. However
+
+# you should judge for yourself, the pros and cons are mentioned at:
+
+# https://www.google.com/search?q=https://guides.cocoapods.org/using/using-cocoapods.html%23checking-in-the-pods-directory
+
+# Pods/
+
+# Add this line if you want to avoid checking in source code from the Pods directory
+
+# Pods/
+
+# Carthage
+
+Carthage/Build/
+
+# fastlane
+
+# It is recommended to not store the screenshots in the git repo. Instead, use fastlane to re-generate them.
+
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+
+# Bundle artifacts
+
+*.jsbundle
+
+# Mac OS X
+
+.DS_Store
