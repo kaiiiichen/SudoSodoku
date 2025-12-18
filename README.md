@@ -1,1 +1,1 @@
-# sudo-sodoku
+# SudoSodoku
