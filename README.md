@@ -71,7 +71,7 @@ SudoSodoku is built with **pure SwiftUI**, following a strict **MVVM (Model-View
    * Change the **Team** to your own Apple Developer account.  
    * *Note: If you are on a Free Developer Account, iCloud capabilities will be disabled. The app will automatically fallback to local storage.*  
 4. Run:  
-   Connect your iPhone or select a Simulator and press Cmd \+ R.
+   Connect your iPhone or select a Simulator and press `Cmd + R`.
 
 ## **🤝 Contributing**
 
