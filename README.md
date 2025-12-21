@@ -55,31 +55,12 @@ SudoSodoku is built with **pure SwiftUI**, following a strict **MVVM (Model-View
   * Automatic migration logic for schema updates (e.g., v3 \-\> v4 data migration).  
 * **Input Handling**: Custom gesture recognizers to solve conflict issues between "Jelly" animations and selection logic.
 
-### **Directory Structure**
-
-SudoSodoku/  
-├── Models/  
-│   ├── GameRecord.swift       \# Codable save data structure  
-│   ├── SudokuCell.swift       \# Unit cell model  
-│   └── Difficulty.swift       \# Enum with rating ranges  
-├── ViewModels/  
-│   ├── SudokuGame.swift       \# Core game logic & state machine  
-│   └── StorageManager.swift   \# File I/O & Cloud syncing  
-├── Managers/  
-│   ├── GameCenterManager.swift\# GameKit authentication  
-│   ├── RatingManager.swift    \# ELO calculation algorithms  
-│   └── HapticManager.swift    \# Haptic feedback engine  
-├── Views/  
-│   ├── ContentView.swift      \# Main entry & NavigationStack  
-│   ├── GameView.swift         \# The game board  
-│   └── ArchiveView.swift      \# History & Favorites list  
-└── Algorithms/  
-    └── SudokuGenerator.swift  \# Backtracking & Digging logic
-
 ## **🚀 Building the Project**
 
 1. **Clone the repository**:  
-   git clone \[https://github.com/kaiiiichen/SudoSodoku.git\](https://github.com/kaiiiichen/SudoSodoku.git)
+  ```bash
+  git clone https://github.com/kaiiiichen/SudoSodoku.git
+  ```
 
 2. Open in Xcode:  
    Double-click SudokuMVP.xcodeproj. Ensure you have Xcode 15.0+ installed.  
@@ -94,16 +75,18 @@ SudoSodoku/
 
 ## **🤝 Contributing**
 
-Contributions are welcome\! Whether it's fixing a bug, improving the AI generator, or adding new themes.
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-1. Fork the Project  
-2. Create your Feature Branch (git checkout \-b feature/AmazingFeature)  
-3. Commit your Changes (git commit \-m 'Add some AmazingFeature')  
-4. Push to the Branch (git push origin feature/AmazingFeature)  
-5. Open a Pull Request
+```bash
+git checkout -b feature/AmazingFeature
+git commit -m "Add some AmazingFeature"
+git push origin feature/AmazingFeature
+```
+
+Then open a Pull Request.
 
 ## **📄 License**
 
 Distributed under the MIT License. See LICENSE for more information.
 
-*Created with logic and ❤️ by \[Your Name\].*
+*Created with logic and ❤️ by \[Kai Chen].*
