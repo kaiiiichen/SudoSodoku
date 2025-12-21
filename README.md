@@ -89,4 +89,4 @@ Then open a Pull Request.
 
 Distributed under the MIT License. See LICENSE for more information.
 
-*Created with logic and ❤️ by \[Kai Chen].*
+*Created with logic and ❤️ by Kai Chen.*
