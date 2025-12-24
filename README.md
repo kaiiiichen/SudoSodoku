@@ -55,6 +55,29 @@ SudoSodoku is built with **pure SwiftUI**, following a strict **MVVM (Model-View
   * Automatic migration logic for schema updates (e.g., v3 \-\> v4 data migration).  
 * **Input Handling**: Custom gesture recognizers to solve conflict issues between "Jelly" animations and selection logic.
 
+### **Directory Structure**
+
+```bash
+SudoSodoku/  
+├── Models/  
+│   ├── GameRecord.swift       \# Codable save data structure  
+│   ├── SudokuCell.swift       \# Unit cell model  
+│   └── Difficulty.swift       \# Enum with rating ranges  
+├── ViewModels/  
+│   ├── SudokuGame.swift       \# Core game logic & state machine  
+│   └── StorageManager.swift   \# File I/O & Cloud syncing  
+├── Managers/  
+│   ├── GameCenterManager.swift\# GameKit authentication  
+│   ├── RatingManager.swift    \# ELO calculation algorithms  
+│   └── HapticManager.swift    \# Haptic feedback engine  
+├── Views/  
+│   ├── ContentView.swift      \# Main entry & NavigationStack  
+│   ├── GameView.swift         \# The game board  
+│   └── ArchiveView.swift      \# History & Favorites list  
+└── Algorithms/  
+    └── SudokuGenerator.swift  \# Backtracking & Digging logic
+```
+
 ## **🚀 Building the Project**
 
 1. **Clone the repository**:  
