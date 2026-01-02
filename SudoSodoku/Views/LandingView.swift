@@ -53,7 +53,7 @@ struct LandingView: View {
                             }
                         }
                     
-                    Text("KERNEL_V0.5.0").font(.system(size: 14, design: .monospaced)).foregroundColor(.gray).padding(.top, 5)
+                    Text("KERNEL_V1.0.0").font(.system(size: 14, design: .monospaced)).foregroundColor(.gray).padding(.top, 5)
                 }
                 Spacer()
                 
@@ -77,4 +77,5 @@ struct LandingView: View {
         }
     }
 }
+
 

@@ -30,3 +30,4 @@ struct GameRecord: Codable, Identifiable, Hashable {
     }
 }
 
+

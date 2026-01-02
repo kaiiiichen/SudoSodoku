@@ -11,3 +11,4 @@ struct SudokuCell: Identifiable, Equatable {
     var notes: Set<Int> = []
 }
 
+
