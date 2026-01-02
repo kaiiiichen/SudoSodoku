@@ -257,7 +257,7 @@
 				DEVELOPMENT_TEAM = KNVFR9ZKQ7;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "sudo sodoku";
+				INFOPLIST_KEY_CFBundleDisplayName = SudoSodoku;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.board-games";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -292,7 +292,7 @@
 				DEVELOPMENT_TEAM = KNVFR9ZKQ7;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "sudo sodoku";
+				INFOPLIST_KEY_CFBundleDisplayName = SudoSodoku;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.board-games";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

@@ -1,0 +1,17 @@
+{
+    "files.associations": {
+        "*.swift": "swift"
+    },
+    "files.exclude": {
+        "**/.DS_Store": true,
+        "**/xcuserdata": true,
+        "**/xcshareddata": false
+    },
+    "search.exclude": {
+        "**/build": true,
+        "**/DerivedData": true,
+        "**/*.xcworkspace": false,
+        "**/*.xcodeproj": false
+    }
+}
+
