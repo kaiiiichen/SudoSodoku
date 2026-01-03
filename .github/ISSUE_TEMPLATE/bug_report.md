@@ -34,6 +34,7 @@ If applicable, add screenshots to help explain your problem.
 ## 🔧 Environment
 
 **Device:**
+
 - [ ] iPhone
 - [ ] iPad
 - [ ] Simulator
@@ -62,4 +63,3 @@ If you have ideas on how to fix this, please describe them here.
 ---
 
 **Thank you for reporting this bug!** 🐛
-

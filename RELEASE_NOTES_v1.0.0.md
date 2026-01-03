@@ -5,6 +5,7 @@ We're thrilled to announce the first stable release of **SudoSodoku** - a termin
 ## What's New
 
 ### 🎮 Core Features
+
 - **Procedural Puzzle Generation**: Infinite unique puzzles generated in real-time
 - **Four Difficulty Levels**: Easy, Medium, Hard, and Master with intelligent scoring
 - **ELO Rating System**: Competitive ranking from SCRIPT_KIDDIE to THE_ARCHITECT
@@ -12,17 +13,20 @@ We're thrilled to announce the first stable release of **SudoSodoku** - a termin
 - **Undo/Redo**: Full history stack for fearless experimentation
 
 ### 🎨 Terminal Aesthetic
+
 - Authentic green phosphor terminal UI
 - Matrix-style victory animations
 - Haptic feedback for every interaction
 - Smooth, polished animations
 
 ### 💾 Data & Sync
+
 - **iCloud Sync**: Automatic cloud synchronization across devices
 - **Game Center Integration**: Seamless authentication and profile management
 - **Smart Archives**: Auto-save with favorites and replay functionality
 
 ### 🏗️ Technical Excellence
+
 - Clean MVVM architecture
 - Modular, maintainable codebase
 - Open source and fully documented
@@ -37,11 +41,13 @@ We're thrilled to announce the first stable release of **SudoSodoku** - a termin
 ## Getting Started
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/kaiiiichen/SudoSodoku.git
    ```
 
 2. Open in Xcode:
+
    ```bash
    open SudoSodoku.xcodeproj
    ```
@@ -53,6 +59,7 @@ See [README.md](README.md) for detailed build instructions.
 ## What's Next
 
 We're planning future updates including:
+
 - Detailed statistics
 - iPad optimization
 - Achievement system
@@ -75,4 +82,3 @@ Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
 **Enjoy the game!** 🎮
 
 *Created with logic and ❤️ by ginger cat.*
-

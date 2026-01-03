@@ -76,12 +76,14 @@ If you're contributing code:
 #### Permissions
 
 SudoSodoku requests minimal permissions:
+
 * **iCloud**: For game state synchronization (optional)
 * **Game Center**: For user authentication and achievements (optional)
 
 #### Third-Party Dependencies
 
 Current dependencies:
+
 * **SwiftUI**: Apple framework
 * **GameKit**: Apple framework
 * **Combine**: Apple framework
@@ -95,6 +97,7 @@ None at this time. All known security issues will be listed here once resolved.
 ### 📝 Security Updates
 
 Security updates will be:
+
 * Documented in CHANGELOG.md
 * Released as patch versions (e.g., 1.0.1, 1.0.2)
 * Communicated through GitHub releases
@@ -103,6 +106,7 @@ Security updates will be:
 ### 🏆 Recognition
 
 We deeply appreciate responsible disclosure of security vulnerabilities. Security researchers and contributors who help keep SudoSodoku secure will be:
+
 * Credited in security advisories (with your permission)
 * Acknowledged in release notes
 * Listed in this document (if you wish)
@@ -116,4 +120,3 @@ We deeply appreciate responsible disclosure of security vulnerabilities. Securit
 ---
 
 **Thank you for helping keep SudoSodoku secure!** 🔒
-

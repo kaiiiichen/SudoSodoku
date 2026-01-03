@@ -34,6 +34,7 @@ Describe the tests you ran to verify your changes:
 - [ ] Verified no regressions
 
 **Test Results:**
+
 - [ ] All tests pass
 - [ ] No crashes
 - [ ] No performance regressions
@@ -52,10 +53,12 @@ If applicable, add screenshots or GIFs to demonstrate your changes.
 ## 📝 Code Changes
 
 ### Files Changed
+
 - `path/to/file1.swift` - Description of changes
 - `path/to/file2.swift` - Description of changes
 
 ### Key Changes
+
 - Change 1
 - Change 2
 - Change 3
@@ -104,4 +107,3 @@ Add any other context about the PR here.
 **Thank you for contributing to SudoSodoku!** 🎉
 
 Please ensure all checkboxes are completed before requesting review.
-
