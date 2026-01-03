@@ -228,4 +228,4 @@ Then open a Pull Request. See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed gu
 
 Distributed under the MIT License. See LICENSE for more information.
 
-*Created with logic and ❤️ by ginger cat.*
+*Created with logic and ❤️ by Kai Chen.*
