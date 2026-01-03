@@ -226,6 +226,6 @@ Then open a Pull Request. See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed gu
 
 ## **📄 License**
 
-Distributed under the MIT License. See [LICENSE](.github/LICENSE) for more information.
+Distributed under the MIT License. See LICENSE for more information.
 
 *Created with logic and ❤️ by Kai Chen.*
