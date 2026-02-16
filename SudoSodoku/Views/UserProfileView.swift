@@ -2,6 +2,7 @@ import SwiftUI
 
 struct UserProfileView: View {
     @ObservedObject var storage = StorageManager.shared
+    
     var ratingInfo: (title: String, color: Color) { RatingManager.shared.getRankTitle(rating: storage.userRating) }
     var totalGames: Int { storage.records.count }
     var solvedGames: Int { storage.records.filter { $0.isSolved }.count }
@@ -30,9 +31,9 @@ struct UserProfileView: View {
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 20) {
                         StatCard(title: "GAMES PLAYED", value: "\(totalGames)", icon: "gamecontroller")
                         StatCard(title: "PUZZLES SOLVED", value: "\(solvedGames)", icon: "checkmark.seal")
-                        StatCard(title: "DIGITS FILLED", value: "\(totalDigitsFilled)", icon: "number.square.fill")
-                        StatCard(title: "HIGHEST ELO", value: "\(storage.userRating)", icon: "chart.line.uptrend.xyaxis")
                     }.padding(.horizontal)
+                    
+                    Spacer()
                     VStack(alignment: .leading, spacing: 15) {
                         Text("SYSTEM_RANK_TABLE:").font(.system(size: 14, weight: .bold, design: .monospaced)).foregroundColor(.gray)
                         RankRow(range: "0-1199", title: "SCRIPT_KIDDIE", color: .gray)
@@ -46,6 +47,9 @@ struct UserProfileView: View {
                 }
             }
         }.navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            GameCenterManager.shared.authenticateUser()
+        }
     }
 }
 

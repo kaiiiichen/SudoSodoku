@@ -21,6 +21,9 @@ class SudokuGame: ObservableObject {
     var onSolved: (() -> Void)?
     var currentRecordID: UUID?
     
+    // Logical quality statistics
+    private var currentUndoCount: Int = 0
+    
     init() { }
     
     func discardCurrentRecord() {
@@ -41,6 +44,9 @@ class SudokuGame: ObservableObject {
         self.isNoteMode = false
         self.undoStack = []
         self.redoStack = []
+        
+        // Reset logical quality statistics
+        self.currentUndoCount = 0
         
         DispatchQueue.global(qos: .userInitiated).async {
             let (puzzle, solution, score) = SudokuGenerator.generatePuzzle(targetDifficulty: difficulty)
@@ -79,6 +85,9 @@ class SudokuGame: ObservableObject {
         self.isNoteMode = false
         self.undoStack = []
         self.redoStack = []
+        
+        // Load logical quality statistics
+        self.currentUndoCount = record.undoCount
         
         self.board = (0..<81).map { i in
             let initialVal = record.initialBoard[i]
@@ -145,6 +154,7 @@ class SudokuGame: ObservableObject {
         redoStack.append(lastMove)
         board[lastMove.index] = lastMove.oldCell
         updateBoardErrors()
+        currentUndoCount += 1
         saveCurrentState()
         HapticManager.shared.lightImpact()
     }
@@ -219,7 +229,8 @@ class SudokuGame: ObservableObject {
             isSolved: isSolved,
             ratingChange: ratingGained,
             isArchived: isArchived,
-            isFavorite: isFavorite
+            isFavorite: isFavorite,
+            undoCount: currentUndoCount
         )
         StorageManager.shared.saveGame(record)
     }
@@ -235,10 +246,14 @@ class SudokuGame: ObservableObject {
                 board[i].isError = false
             }
         }
+        
+        // Reset game state and logical quality statistics
         isSolved = false
         ratingGained = nil
         undoStack = []
         redoStack = []
+        currentUndoCount = 0
+        
         saveCurrentState()
     }
     
@@ -300,6 +315,10 @@ class SudokuGame: ObservableObject {
             let gained = RatingManager.shared.calculateRatingChange(playerRating: currentElo, puzzleDifficultyIndex: currentScore)
             self.ratingGained = gained
             StorageManager.shared.updateUserRating(add: gained)
+            
+            // Submit score to Game Center
+            GameCenterManager.shared.submitScore(currentScore, difficulty: difficulty.rawValue)
+            
             saveCurrentState()
             onSolved?()
         }

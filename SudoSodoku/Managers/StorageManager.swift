@@ -13,14 +13,9 @@ class StorageManager: ObservableObject {
     init() { loadData() }
     
     private func getFileURL(name: String) -> URL {
-        if let iCloudURL = FileManager.default.url(forUbiquityContainerIdentifier: nil)?.appendingPathComponent("Documents") {
-            if !FileManager.default.fileExists(atPath: iCloudURL.path) {
-                try? FileManager.default.createDirectory(at: iCloudURL, withIntermediateDirectories: true, attributes: nil)
-            }
-            return iCloudURL.appendingPathComponent(name)
-        } else {
-            return FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent(name)
-        }
+        // 完全使用本地存储，不使用iCloud
+        let localURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent(name)
+        return localURL
     }
     
     struct StorageContainer: Codable {
@@ -88,7 +83,7 @@ class StorageManager: ObservableObject {
     func loadData() {
         let currentURL = getFileURL(name: currentFileName)
         
-        // 1. 尝试加载当前版本 (v4)
+        // 1. Try to load current version (v4)
         if FileManager.default.fileExists(atPath: currentURL.path),
            let data = try? Data(contentsOf: currentURL),
            let decoded = try? JSONDecoder().decode(StorageContainer.self, from: data) {
@@ -99,18 +94,16 @@ class StorageManager: ObservableObject {
             return
         }
         
-        // 2. 迁移逻辑
-        print("⚠️ Current save not found. Attempting migration...")
+        // 2. Migration logic
         for legacyName in legacyFileNames {
             let legacyURL = getFileURL(name: legacyName)
             if FileManager.default.fileExists(atPath: legacyURL.path) {
-                print("✅ Found legacy save: \(legacyName)")
                 if let data = try? Data(contentsOf: legacyURL),
                    let decoded = try? JSONDecoder().decode(StorageContainer.self, from: data) {
                     
                     DispatchQueue.main.async {
-                        // [关键修复] 将所有迁移过来的旧记录强制标记为已存档
-                        // 因为在旧版本中，只要在列表里就是"已保存"的
+                        // [Critical fix] Force mark all migrated old records as archived
+                        // Because in old version, anything in the list is "saved"
                         var migratedRecords = decoded.records
                         for i in 0..<migratedRecords.count {
                             migratedRecords[i].isArchived = true
@@ -118,9 +111,8 @@ class StorageManager: ObservableObject {
                         
                         self.records = migratedRecords.sorted(by: { $0.lastPlayedTime > $1.lastPlayedTime })
                         self.userRating = decoded.rating
-                        // 立即保存为 v4 格式，完成迁移
+                        // Immediately save as v4 format to complete migration
                         self.persist()
-                        print("🚀 Migration successful. All legacy records marked as archived.")
                     }
                     return
                 }

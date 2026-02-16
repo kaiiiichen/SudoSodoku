@@ -30,7 +30,7 @@ struct GameView: View {
                 }
             } else {
                 VStack(spacing: 10) {
-                    // 顶部栏
+                    // Top bar
                     HStack(spacing: 12) {
                         Button(action: { handleExitRequest(.back) }) {
                             Image(systemName: "chevron.left")
@@ -126,6 +126,8 @@ struct GameView: View {
                     game.generateGame(for: diff)
                 }
             }
+            // Initialize GameCenter authentication
+            GameCenterManager.shared.authenticateUser()
         }
         .alert("SAVE_PROGRESS?", isPresented: $showSaveAlert) {
             Button("KEEP (Save)", role: .none) {

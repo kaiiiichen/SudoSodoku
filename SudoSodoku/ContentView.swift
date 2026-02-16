@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct ContentView: View {
+    @StateObject private var viewRouter = ViewRouter()
+    
     init() {
         UINavigationBar.appearance().largeTitleTextAttributes = [.foregroundColor: UIColor.white]
         UINavigationBar.appearance().titleTextAttributes = [.foregroundColor: UIColor.white]
@@ -8,7 +10,13 @@ struct ContentView: View {
 
     var body: some View {
         NavigationStack {
-            LandingView()
+            Group {
+                if viewRouter.currentPlatform == .pad {
+                    iPadLandingView()
+                } else {
+                    LandingView()
+                }
+            }
         }
         .preferredColorScheme(.dark)
         .onAppear {
