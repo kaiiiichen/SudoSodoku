@@ -72,7 +72,7 @@ struct ArchiveView: View {
             }
             .navigationDestination(isPresented: $navigateToGame) { if let rec = gameToLoad { GameView(record: rec) } }
             .confirmationDialog("COMPLETED_TASK", isPresented: $showActionSheet) {
-                Button("RESTART (sudo reboot)") { if var rec = selectedRecordForAction { rec.isSolved = false; gameToLoad = rec; navigateToGame = true } }
+                Button("RESTART (sudo reboot)") { if let rec = selectedRecordForAction { gameToLoad = rec.restartedCopy(); navigateToGame = true } }
                 Button("SHOW ANSWER (cat solution)") { if let rec = selectedRecordForAction { gameToLoad = rec; navigateToGame = true } }
                 Button("CANCEL", role: .cancel) { }
             }
@@ -87,5 +87,4 @@ struct ArchiveView: View {
         if record.isSolved { showActionSheet = true } else { gameToLoad = record; navigateToGame = true }
     }
 }
-
 

@@ -3,30 +3,18 @@ import SwiftUI
 /// iPad-optimized archive view
 struct iPadArchiveView: View {
     @ObservedObject var storage = StorageManager.shared
-    @State private var selectedFilter: FilterOption = .all
+    @State private var filterMode: FilterMode = .all
     @State private var selectedRecordForAction: GameRecord?
     @State private var showActionSheet = false
     @State private var navigateToGame = false
     @State private var gameToLoad: GameRecord?
+    @State private var isEditMode: Bool = false
+    @State private var selectedIds: Set<UUID> = []
     
-    enum FilterOption: String, CaseIterable {
-        case all = "ALL"
-        case archived = "ARCHIVED"
-        case favorites = "FAVORITES"
-        case solved = "SOLVED"
-    }
+    enum FilterMode { case all; case favorites }
     
     var filteredRecords: [GameRecord] {
-        switch selectedFilter {
-        case .all:
-            return storage.records
-        case .archived:
-            return storage.records.filter { $0.isArchived }
-        case .favorites:
-            return storage.records.filter { $0.isFavorite }
-        case .solved:
-            return storage.records.filter { $0.isSolved }
-        }
+        filterMode == .all ? storage.records : storage.records.filter { $0.isFavorite }
     }
     
     var body: some View {
@@ -34,38 +22,109 @@ struct iPadArchiveView: View {
             TerminalBackground()
             
             VStack(spacing: 0) {
-                // Header with filter options
-                VStack(spacing: 20) {
-                    Text("GAME_ARCHIVES")
-                        .font(.system(size: 28, weight: .bold, design: .monospaced))
-                        .foregroundColor(.white)
-                    
-                    // Filter buttons
-                    HStack(spacing: 15) {
-                        ForEach(FilterOption.allCases, id: \.self) { filter in
-                            iPadFilterButton(
-                                title: filter.rawValue,
-                                isSelected: selectedFilter == filter
-                            ) {
-                                selectedFilter = filter
-                            }
+                HStack {
+                    Text(filterMode == .favorites ? "FAVORITES:" : "USER_LOGS:")
+                        .font(.system(size: 22, weight: .bold, design: .monospaced))
+                        .foregroundColor(.gray)
+                    Spacer()
+                    if isEditMode {
+                        Button(action: { isEditMode = false; selectedIds.removeAll() }) {
+                            Text("DONE")
+                                .font(.system(size: 14, weight: .bold, design: .monospaced))
+                                .foregroundColor(.green)
                         }
                     }
                 }
                 .padding(.horizontal, 30)
                 .padding(.top, 30)
+                .padding(.bottom, 18)
                 
-                // Archive list
-                ScrollView {
-                    LazyVStack(spacing: 20) {
-                        ForEach(filteredRecords) { record in
-                            iPadArchiveRow(record: record) {
-                                handleRecordTap(record)
+                if filteredRecords.isEmpty {
+                    Spacer()
+                    Text("NO_RECORDS_FOUND")
+                        .font(.system(size: 22, weight: .bold, design: .monospaced))
+                        .foregroundColor(.gray.opacity(0.5))
+                    Spacer()
+                } else {
+                    ScrollView {
+                        LazyVStack(spacing: 18) {
+                            ForEach(filteredRecords) { record in
+                                iPadArchiveRow(
+                                    record: record,
+                                    isEditMode: isEditMode,
+                                    isSelected: selectedIds.contains(record.id),
+                                    action: {
+                                        if isEditMode {
+                                            toggleSelection(for: record.id)
+                                        } else {
+                                            handleRecordTap(record)
+                                        }
+                                    },
+                                    selectionAction: {
+                                        toggleSelection(for: record.id)
+                                    }
+                                )
                             }
+                        }
+                        .padding(.horizontal, 30)
+                        .padding(.bottom, 30)
+                    }
+                    .refreshable { storage.loadData() }
+                }
+
+                if isEditMode {
+                    HStack {
+                        Button(action: {
+                            storage.batchDelete(ids: selectedIds)
+                            isEditMode = false
+                            selectedIds.removeAll()
+                        }) {
+                            VStack(spacing: 6) {
+                                Image(systemName: "trash")
+                                Text("DELETE")
+                                    .font(.system(size: 12, weight: .bold, design: .monospaced))
+                            }
+                            .foregroundColor(.red)
+                        }
+
+                        Spacer()
+
+                        Button(action: {
+                            storage.batchFavorite(ids: selectedIds)
+                            isEditMode = false
+                            selectedIds.removeAll()
+                        }) {
+                            VStack(spacing: 6) {
+                                Image(systemName: "star.fill")
+                                Text("FAVORITE")
+                                    .font(.system(size: 12, weight: .bold, design: .monospaced))
+                            }
+                            .foregroundColor(.yellow)
                         }
                     }
                     .padding(.horizontal, 30)
-                    .padding(.bottom, 30)
+                    .padding(.vertical, 18)
+                    .background(Color.white.opacity(0.08))
+                }
+            }
+        }
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Menu {
+                    Button(action: { filterMode = .all }) {
+                        Label("Show All Logs", systemImage: "list.bullet")
+                    }
+                    Button(action: { filterMode = .favorites }) {
+                        Label("Show Favorites", systemImage: "star.fill")
+                    }
+                    Divider()
+                    Button(action: { isEditMode.toggle() }) {
+                        Label("Batch Edit", systemImage: "checkmark.circle")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                        .font(.system(size: 20))
+                        .foregroundColor(.green)
                 }
             }
         }
@@ -76,9 +135,8 @@ struct iPadArchiveView: View {
         }
         .confirmationDialog("COMPLETED_TASK", isPresented: $showActionSheet) {
             Button("RESTART (sudo reboot)") { 
-                if var rec = selectedRecordForAction { 
-                    rec.isSolved = false; 
-                    gameToLoad = rec; 
+                if let rec = selectedRecordForAction { 
+                    gameToLoad = rec.restartedCopy()
                     navigateToGame = true 
                 } 
             }
@@ -90,6 +148,7 @@ struct iPadArchiveView: View {
             }
             Button("CANCEL", role: .cancel) { }
         }
+        .navigationBarTitleDisplayMode(.inline)
         .onAppear { 
             storage.loadData() 
             GameCenterManager.shared.authenticateUser()
@@ -105,41 +164,35 @@ struct iPadArchiveView: View {
             navigateToGame = true 
         }
     }
-}
 
-/// iPad-optimized filter button
-private struct iPadFilterButton: View {
-    let title: String
-    let isSelected: Bool
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            Text(title)
-                .font(.system(size: 14, weight: .bold, design: .monospaced))
-                .foregroundColor(isSelected ? .black : .gray)
-                .padding(.horizontal, 25)
-                .padding(.vertical, 12)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(isSelected ? Color.green : Color.clear)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(isSelected ? Color.clear : Color.gray, lineWidth: 1)
-                        )
-                )
+    func toggleSelection(for id: UUID) {
+        if selectedIds.contains(id) {
+            selectedIds.remove(id)
+        } else {
+            selectedIds.insert(id)
         }
-        .buttonStyle(PlainButtonStyle())
     }
 }
 
 /// iPad-optimized archive row
 private struct iPadArchiveRow: View {
     let record: GameRecord
+    let isEditMode: Bool
+    let isSelected: Bool
     let action: () -> Void
+    let selectionAction: () -> Void
     
     var body: some View {
         HStack(spacing: 20) {
+            if isEditMode {
+                Button(action: selectionAction) {
+                    Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                        .font(.system(size: 24))
+                        .foregroundColor(isSelected ? .green : .gray)
+                }
+                .buttonStyle(PlainButtonStyle())
+            }
+
             // Left side - Game info
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
@@ -188,7 +241,7 @@ private struct iPadArchiveRow: View {
                 HStack(spacing: 8) {
                     Image(systemName: "play.fill")
                         .font(.system(size: 14, weight: .bold))
-                    Text("PLAY")
+                    Text(isEditMode ? "SELECT" : "PLAY")
                         .font(.system(size: 14, weight: .bold, design: .monospaced))
                 }
                 .foregroundColor(.black)

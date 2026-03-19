@@ -9,7 +9,7 @@ struct ModeSelectionView: View {
                 ScrollView {
                     VStack(spacing: 15) {
                         ForEach(Difficulty.allCases, id: \.self) { diff in
-                            NavigationLink(destination: GameView(difficulty: diff)) {
+                            NavigationLink(destination: destination(for: diff)) {
                                 HStack {
                                     VStack(alignment: .leading) {
                                         Text("--\(diff.rawValue.lowercased())").font(.system(size: 20, weight: .bold, design: .monospaced)).foregroundColor(diff.color)
@@ -25,6 +25,14 @@ struct ModeSelectionView: View {
             }
         }.navigationBarTitleDisplayMode(.inline)
     }
-}
 
+    @ViewBuilder
+    private func destination(for difficulty: Difficulty) -> some View {
+        if UIDevice.isPad {
+            iPadGameView(difficulty: difficulty)
+        } else {
+            GameView(difficulty: difficulty)
+        }
+    }
+}
 

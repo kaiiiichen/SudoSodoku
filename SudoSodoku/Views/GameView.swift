@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct GameView: View {
-    @StateObject var game = SudokuGame()
+    @StateObject private var game: SudokuGame
     @Environment(\.dismiss) var dismiss
     
     var difficulty: Difficulty?
@@ -14,6 +14,12 @@ struct GameView: View {
     enum ExitAction {
         case back
         case refresh
+    }
+
+    init(game: SudokuGame = SudokuGame(), difficulty: Difficulty? = nil, record: GameRecord? = nil) {
+        _game = StateObject(wrappedValue: game)
+        self.difficulty = difficulty
+        self.record = record
     }
     
     var body: some View {
@@ -159,5 +165,4 @@ struct GameView: View {
         pendingExitAction = nil
     }
 }
-
 

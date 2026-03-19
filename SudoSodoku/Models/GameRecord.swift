@@ -50,6 +50,16 @@ struct GameRecord: Codable, Identifiable, Hashable {
         default: return "NEEDS_IMPROVEMENT"
         }
     }
-}
 
+    func restartedCopy() -> GameRecord {
+        var restarted = self
+        restarted.lastPlayedTime = Date()
+        restarted.playerBoard = Array(repeating: 0, count: 81)
+        restarted.playerNotes = Array(repeating: [], count: 81)
+        restarted.isSolved = false
+        restarted.ratingChange = nil
+        restarted.undoCount = 0
+        return restarted
+    }
+}
 

@@ -77,6 +77,7 @@ struct iPadUserProfileView: View {
                 }
             }
         }
+        .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             GameCenterManager.shared.authenticateUser()
         }
