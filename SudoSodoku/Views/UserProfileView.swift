@@ -6,12 +6,6 @@ struct UserProfileView: View {
     var ratingInfo: (title: String, color: Color) { RatingManager.shared.getRankTitle(rating: storage.userRating) }
     var totalGames: Int { storage.records.count }
     var solvedGames: Int { storage.records.filter { $0.isSolved }.count }
-    var totalDigitsFilled: Int {
-        storage.records.reduce(0) { res, rec in
-            res + rec.playerBoard.enumerated().filter { $0.element != 0 && rec.initialBoard[$0.offset] == 0 }.count
-        }
-    }
-    
     var body: some View {
         ZStack {
             TerminalBackground()
