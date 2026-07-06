@@ -6,14 +6,17 @@ struct CellView: View {
     let isSelected: Bool
     let isRelated: Bool
     let highlightNumber: Int?
+    /// Increments each time this cell receives a conflicting digit (see
+    /// SudokuGame.conflictShakes); every increment plays one shake.
+    let shakeTrigger: Int
     var onTap: () -> Void
 
     @State private var animateTrigger = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         ZStack {
             Rectangle().fill(bg).border(Color.white.opacity(0.1), width: 0.5)
-            if isSelected { Rectangle().stroke(Color.green, lineWidth: 2).zIndex(10) }
 
             if cell.value == nil && !cell.notes.isEmpty {
                 NoteGridView(notes: cell.notes, size: cellSize)
@@ -28,13 +31,25 @@ struct CellView: View {
         .frame(width: cellSize, height: cellSize)
         .contentShape(Rectangle())
         .scaleEffect(animateTrigger ? 0.92 : 1.0)
+        .keyframeAnimator(initialValue: 0.0, trigger: shakeTrigger) { content, offset in
+            content.offset(x: offset)
+        } keyframes: { _ in
+            // CRT-glitch jitter on conflict; collapses to a no-op (amplitude 0)
+            // when Reduce Motion is on — the red text still marks the error.
+            let amplitude: Double = reduceMotion ? 0 : cellSize * 0.08
+            LinearKeyframe(-amplitude, duration: 0.05)
+            LinearKeyframe(amplitude, duration: 0.05)
+            LinearKeyframe(-amplitude * 0.5, duration: 0.05)
+            LinearKeyframe(0.0, duration: 0.05)
+        }
         .onTapGesture {
-            HapticManager.shared.lightImpact()
-            withAnimation(.spring(response: 0.2, dampingFraction: 0.5)) { animateTrigger = true }
-            onTap()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                withAnimation(.spring(response: 0.2, dampingFraction: 0.5)) { animateTrigger = false }
+            if !reduceMotion {
+                withAnimation(.spring(response: 0.2, dampingFraction: 0.5)) { animateTrigger = true }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    withAnimation(.spring(response: 0.2, dampingFraction: 0.5)) { animateTrigger = false }
+                }
             }
+            onTap()
         }
     }
 

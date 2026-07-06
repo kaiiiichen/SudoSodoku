@@ -16,6 +16,11 @@ class SudokuGame: ObservableObject {
     @Published var undoStack: [MoveHistory] = []
     @Published var redoStack: [MoveHistory] = []
 
+    // Per-cell shake counters; a cell shakes each time its counter increments.
+    // Monotonically increasing on purpose: resetting to zero would itself be a
+    // change and replay stale shakes on fresh boards.
+    @Published private(set) var conflictShakes: [Int: Int] = [:]
+
     var onSolved: (() -> Void)?
     var currentRecordID: UUID?
 
@@ -148,15 +153,24 @@ class SudokuGame: ObservableObject {
             } else {
                 board[index].notes.insert(number)
             }
+            HapticManager.shared.noteToggled()
         } else {
             if board[index].value == number {
                 board[index].value = nil
+                updateBoardErrors()
+                HapticManager.shared.digitRemoved()
             } else {
                 board[index].value = number
                 board[index].notes = []
                 peerChanges = clearPeerNotes(of: number, around: index)
+                updateBoardErrors()
+                if board[index].isError {
+                    conflictShakes[index, default: 0] += 1
+                    HapticManager.shared.conflictDetected()
+                } else {
+                    HapticManager.shared.digitPlaced()
+                }
             }
-            updateBoardErrors()
             checkVictory()
         }
 
@@ -221,7 +235,7 @@ class SudokuGame: ObservableObject {
         updateBoardErrors()
         currentUndoCount += 1
         saveCurrentState()
-        HapticManager.shared.lightImpact()
+        HapticManager.shared.moveReverted()
     }
 
     func redoLastMove() {
@@ -232,7 +246,7 @@ class SudokuGame: ObservableObject {
         }
         updateBoardErrors()
         saveCurrentState()
-        HapticManager.shared.lightImpact()
+        HapticManager.shared.moveReverted()
     }
 
     func clearSelectedCell() {
@@ -247,6 +261,7 @@ class SudokuGame: ObservableObject {
         if oldCell != newCell {
             undoStack.append(MoveHistory(index: index, oldCell: oldCell, newCell: newCell))
             redoStack.removeAll()
+            HapticManager.shared.digitRemoved()
         }
 
         updateBoardErrors()
@@ -373,7 +388,7 @@ class SudokuGame: ObservableObject {
 
         isSolved = true
         pauseClock()
-        HapticManager.shared.success()
+        HapticManager.shared.victory()
 
         let currentElo = StorageManager.shared.userRating
         let gained = RatingManager.shared.calculateRatingChange(

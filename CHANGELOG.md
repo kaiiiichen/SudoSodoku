@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Auto-clear pencil notes: placing a number removes that digit from notes in the same row, column, and box; undo/redo treats the placement and cleared notes as one compound move (#5)
 - Numpad digit keys dim and strike through once all nine instances of a digit are placed; undo/clear revives them (#6)
 - Numpad dims when no cell is selected and taps give a warning haptic nudge instead of being silently swallowed (#7)
+- Semantic haptic vocabulary: selection tick on cell changes (`.sensoryFeedback`), rigid impact on placement, soft impact on removal/notes, error notification on conflicts, and a custom CoreHaptics victory pattern (three ascending ticks + rumble) with graceful fallback (#8)
+- Conflicting placements shake the cell with a short CRT-glitch jitter alongside the error haptic; disabled under Reduce Motion (#9)
+- The selection frame is now a single shared rectangle that glides between cells with a spring instead of jumping; instant under Reduce Motion (#10)
 - `SudoSodokuTests` unit test target covering puzzle generation (solvability, unique solution, difficulty scoring), ELO rating (K-factor tiers, anti-smurfing), and storage (persistence roundtrip, legacy save migration)
 - Shared `SudoSodoku` scheme with test action, enabling `xcodebuild test` and Xcode Cloud test workflows
 

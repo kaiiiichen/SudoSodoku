@@ -39,7 +39,7 @@ struct ControlPanelView: View {
             HStack {
                 Button(action: {
                     game.isNoteMode.toggle()
-                    HapticManager.shared.lightImpact()
+                    HapticManager.shared.noteModeToggled()
                 }) {
                     VStack {
                         Image(systemName: game.isNoteMode ? "pencil.circle.fill" : "pencil.circle")

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct BoardView: View {
     @ObservedObject var game: SudokuGame
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         GeometryReader { geometry in
@@ -18,15 +19,41 @@ struct BoardView: View {
                             isSelected: game.selectedCellIndex == index,
                             isRelated: isRelated(index: index),
                             highlightNumber: getHighlightNumber(),
+                            shakeTrigger: game.conflictShakes[index] ?? 0,
                             onTap: { game.selectCell(at: index) }
                         )
                     }
                 }
                 .overlay(GridLinesOverlay(width: width))
+                .overlay(selectionFrame(cellSize: cellSize))
                 .border(Color.gray, width: 2)
+                .sensoryFeedback(.selection, trigger: game.selectedCellIndex)
             }
         }
         .aspectRatio(1, contentMode: .fit)
+    }
+
+    /// One shared selection rectangle that glides between cells instead of
+    /// jumping (per-cell strokes can only appear/disappear). Instant under
+    /// Reduce Motion.
+    @ViewBuilder
+    private func selectionFrame(cellSize: CGFloat) -> some View {
+        Group {
+            if let index = game.selectedCellIndex {
+                Rectangle()
+                    .stroke(Color.green, lineWidth: 2)
+                    .frame(width: cellSize, height: cellSize)
+                    .position(
+                        x: (CGFloat(index % 9) + 0.5) * cellSize,
+                        y: (CGFloat(index / 9) + 0.5) * cellSize
+                    )
+            }
+        }
+        .allowsHitTesting(false)
+        .animation(
+            reduceMotion ? nil : .spring(response: 0.2, dampingFraction: 0.8),
+            value: game.selectedCellIndex
+        )
     }
 
     private func isRelated(index: Int) -> Bool {
