@@ -399,9 +399,11 @@ class SudokuGame: ObservableObject {
 
         if gained > 0 {
             StorageManager.shared.updateUserRating(add: gained)
+            GameCenterManager.shared.submitRating(StorageManager.shared.userRating)
         }
 
-        GameCenterManager.shared.submitScore(currentScore, difficulty: difficulty.rawValue)
+        // Clock is already frozen, so this is the final solve time.
+        GameCenterManager.shared.submitCompletionTime(playDuration(), difficulty: difficulty.rawValue)
         saveCurrentState()
         onSolved?()
     }

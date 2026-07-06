@@ -18,11 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Semantic haptic vocabulary: selection tick on cell changes (`.sensoryFeedback`), rigid impact on placement, soft impact on removal/notes, error notification on conflicts, and a custom CoreHaptics victory pattern (three ascending ticks + rumble) with graceful fallback (#8)
 - Conflicting placements shake the cell with a short CRT-glitch jitter alongside the error haptic; disabled under Reduce Motion (#9)
 - The selection frame is now a single shared rectangle that glides between cells with a spring instead of jumping; instant under Reduce Motion (#10)
+- Game Center leaderboards: global ELO ranking plus per-difficulty fastest-time boards; victories submit the solve time (whole seconds) and rating gains submit the new ELO; terminal-styled leaderboard screen (`cat /leaderboard` in the profile) with guest sign-in notice and `GKAccessPoint` fallback (#11)
 - `SudoSodokuTests` unit test target covering puzzle generation (solvability, unique solution, difficulty scoring), ELO rating (K-factor tiers, anti-smurfing), and storage (persistence roundtrip, legacy save migration)
 - Shared `SudoSodoku` scheme with test action, enabling `xcodebuild test` and Xcode Cloud test workflows
 
 ### Changed
 
+- Leaderboard submissions previously sent the puzzle difficulty index (0-100), which ranked players by generation luck; scores are now actual performance — solve time per difficulty, ELO on the global board (#11)
 - Set minimum deployment target to iOS 17.0 (aligned project and target settings)
 - iPhone-only app: removed iPad-specific views, routing, and orientation settings
 - Updated documentation to reflect local-only persistence (no iCloud sync)

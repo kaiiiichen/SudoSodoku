@@ -33,6 +33,21 @@ struct UserProfileView: View {
                         StatCard(title: "PUZZLES SOLVED", value: "\(stats.overallStats.solvedGames)", icon: "checkmark.seal")
                     }.padding(.horizontal)
 
+                    NavigationLink(destination: LeaderboardView()) {
+                        HStack {
+                            Image(systemName: "network")
+                            Text("cat /leaderboard")
+                        }
+                        .font(.system(size: 16, weight: .bold, design: .monospaced))
+                        .foregroundColor(.green)
+                        .padding(.vertical, 12)
+                        .frame(maxWidth: .infinity)
+                        .background(Color.green.opacity(0.1))
+                        .cornerRadius(12)
+                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.green.opacity(0.5), lineWidth: 1))
+                    }
+                    .padding(.horizontal)
+
                     Spacer()
 
                     VStack(alignment: .leading, spacing: 15) {
