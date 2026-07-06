@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Conflicting placements shake the cell with a short CRT-glitch jitter alongside the error haptic; disabled under Reduce Motion (#9)
 - The selection frame is now a single shared rectangle that glides between cells with a spring instead of jumping; instant under Reduce Motion (#10)
 - Game Center leaderboards: global ELO ranking plus per-difficulty fastest-time boards; victories submit the solve time (whole seconds) and rating gains submit the new ELO; terminal-styled leaderboard screen (`cat /leaderboard` in the profile) with guest sign-in notice and `GKAccessPoint` fallback (#11)
+- Breach-log loading screen: puzzle generation now plays a typewriter terminal log (`$ sudo breach --target=grid_9x9`) whose verdict lines report the real uniqueness check and difficulty index; instant under Reduce Motion (#12)
+- Victory sequence rework: real matrix rain (TimelineView + Canvas), typewriter `ACCESS GRANTED`, ELO ticker rolling to the new value with a rank-up ceremony on tier crossings; dismissed by tap instead of a 2-second timer; fade-only under Reduce Motion (#13)
 - `SudoSodokuTests` unit test target covering puzzle generation (solvability, unique solution, difficulty scoring), ELO rating (K-factor tiers, anti-smurfing), and storage (persistence roundtrip, legacy save migration)
 - Shared `SudoSodoku` scheme with test action, enabling `xcodebuild test` and Xcode Cloud test workflows
 

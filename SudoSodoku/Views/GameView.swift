@@ -15,6 +15,7 @@ struct GameView: View {
 
     @AppStorage("showPlayTimer") private var showPlayTimer = true
     @State private var clockNow = Date()
+    @State private var showBreachLog = false
     private let clockTicker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     enum ExitAction {
@@ -39,11 +40,13 @@ struct GameView: View {
             TerminalBackground()
                 .onTapGesture { game.selectedCellIndex = nil }
 
-            if game.isGenerating {
-                VStack(spacing: 20) {
-                    ProgressView().progressViewStyle(CircularProgressViewStyle(tint: .green)).scaleEffect(2)
-                    Text("LOADING DATA...").font(.system(size: 16, design: .monospaced)).foregroundColor(.green)
-                }
+            if game.isGenerating || showBreachLog {
+                BreachLogView(
+                    difficulty: game.difficulty,
+                    isGenerating: game.isGenerating,
+                    finalScore: game.currentScore,
+                    onFinished: { withAnimation(.easeOut(duration: 0.2)) { showBreachLog = false } }
+                )
             } else {
                 VStack(spacing: 10) {
                     HStack(spacing: 12) {
@@ -137,10 +140,20 @@ struct GameView: View {
                 }
             }
 
-            if showVictoryAnimation { MatrixVictoryOverlay().zIndex(100) }
+            if showVictoryAnimation {
+                MatrixVictoryOverlay(
+                    ratingGained: game.ratingGained ?? 0,
+                    newRating: StorageManager.shared.userRating,
+                    onDismiss: { withAnimation(.easeOut(duration: 0.25)) { showVictoryAnimation = false } }
+                )
+                .zIndex(100)
+            }
         }
         .navigationBarHidden(true)
         .onReceive(clockTicker) { clockNow = $0 }
+        .onChange(of: game.isGenerating) { _, generating in
+            if generating { showBreachLog = true }
+        }
         .onChange(of: scenePhase) { _, phase in
             switch phase {
             case .background, .inactive:
@@ -157,15 +170,13 @@ struct GameView: View {
 
             game.onSolved = {
                 withAnimation { showVictoryAnimation = true }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                    withAnimation { showVictoryAnimation = false }
-                }
             }
 
             if let record {
                 game.loadFromRecord(record)
                 if record.isSolved { game.showSolution() }
             } else if let difficulty {
+                showBreachLog = true
                 game.generateGame(for: difficulty)
             }
         }
