@@ -21,6 +21,16 @@ class SudokuGame: ObservableObject {
     // change and replay stale shakes on fresh boards.
     @Published private(set) var conflictShakes: [Int: Int] = [:]
 
+    /// Published when a move completes a row, column, or box (their union of
+    /// cell indices). The id makes consecutive pulses distinct for animation.
+    struct UnitPulse: Equatable {
+        let id: Int
+        let cells: Set<Int>
+    }
+
+    @Published private(set) var completedUnitPulse: UnitPulse?
+    private var pulseCounter = 0
+
     var onSolved: (() -> Void)?
     var currentRecordID: UUID?
 
@@ -74,6 +84,7 @@ class SudokuGame: ObservableObject {
         self.redoStack = []
         self.currentUndoCount = 0
         self.sessionStartTime = Date()
+        self.completedUnitPulse = nil
 
         DispatchQueue.global(qos: .userInitiated).async {
             let (puzzle, solution, score) = SudokuGenerator.generatePuzzle(targetDifficulty: difficulty)
@@ -114,6 +125,7 @@ class SudokuGame: ObservableObject {
         undoStack = []
         redoStack = []
         currentUndoCount = record.undoCount
+        completedUnitPulse = nil
 
         board = (0..<81).map { index in
             let initialValue = record.initialBoard[index]
@@ -168,10 +180,21 @@ class SudokuGame: ObservableObject {
                     conflictShakes[index, default: 0] += 1
                     HapticManager.shared.conflictDetected()
                 } else {
-                    HapticManager.shared.digitPlaced()
+                    // One haptic per move, strongest event wins:
+                    // victory > unit completion > plain placement.
+                    let unitCells = unitsCompleted(by: index)
+                    checkVictory()
+                    if isSolved {
+                        // Victory haptic fired inside checkVictory.
+                    } else if unitCells.isEmpty {
+                        HapticManager.shared.digitPlaced()
+                    } else {
+                        pulseCounter += 1
+                        completedUnitPulse = UnitPulse(id: pulseCounter, cells: unitCells)
+                        HapticManager.shared.unitCompleted()
+                    }
                 }
             }
-            checkVictory()
         }
 
         let newCell = board[index]
@@ -198,6 +221,29 @@ class SudokuGame: ObservableObject {
             changes.append(CellChange(index: peer, oldCell: oldCell, newCell: board[peer]))
         }
         return changes
+    }
+
+    /// Cells of every unit (row, column, box) that the move at `index` just
+    /// finished: fully filled with nine distinct values.
+    private func unitsCompleted(by index: Int) -> Set<Int> {
+        let row = index / 9
+        let col = index % 9
+        let boxOrigin = (row / 3) * 3 * 9 + (col / 3) * 3
+
+        let units: [[Int]] = [
+            (0..<9).map { row * 9 + $0 },
+            (0..<9).map { $0 * 9 + col },
+            (0..<9).map { boxOrigin + ($0 / 3) * 9 + $0 % 3 },
+        ]
+
+        var cells = Set<Int>()
+        for unit in units {
+            let values = unit.compactMap { board[$0].value }
+            if values.count == 9, Set(values).count == 9 {
+                cells.formUnion(unit)
+            }
+        }
+        return cells
     }
 
     private func peerIndices(of index: Int) -> [Int] {
@@ -323,6 +369,7 @@ class SudokuGame: ObservableObject {
         redoStack = []
         currentUndoCount = 0
         sessionStartTime = Date()
+        completedUnitPulse = nil
         resetClock(to: 0, running: true)
         saveCurrentState()
     }

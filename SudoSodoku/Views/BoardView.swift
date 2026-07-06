@@ -4,6 +4,9 @@ struct BoardView: View {
     @ObservedObject var game: SudokuGame
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+    @State private var pulseCells: Set<Int> = []
+    @State private var pulseOpacity: Double = 0
+
     var body: some View {
         GeometryReader { geometry in
             if game.board.count < 81 {
@@ -25,12 +28,40 @@ struct BoardView: View {
                     }
                 }
                 .overlay(GridLinesOverlay(width: width))
+                .overlay(unitPulse(cellSize: cellSize))
                 .overlay(selectionFrame(cellSize: cellSize))
                 .border(Color.gray, width: 2)
                 .sensoryFeedback(.selection, trigger: game.selectedCellIndex)
+                .onChange(of: game.completedUnitPulse) { _, pulse in
+                    guard let pulse, !reduceMotion else { return }
+                    pulseCells = pulse.cells
+                    pulseOpacity = 0.32
+                    withAnimation(.easeOut(duration: 0.5)) { pulseOpacity = 0 }
+                }
             }
         }
         .aspectRatio(1, contentMode: .fit)
+    }
+
+    /// Phosphor flash over a just-completed row/column/box: a brief green
+    /// glow that decays over half a second. Skipped entirely under Reduce
+    /// Motion (the medium haptic still marks the moment).
+    @ViewBuilder
+    private func unitPulse(cellSize: CGFloat) -> some View {
+        if pulseOpacity > 0 {
+            ZStack {
+                ForEach(Array(pulseCells), id: \.self) { index in
+                    Rectangle()
+                        .fill(Color.green.opacity(pulseOpacity))
+                        .frame(width: cellSize, height: cellSize)
+                        .position(
+                            x: (CGFloat(index % 9) + 0.5) * cellSize,
+                            y: (CGFloat(index / 9) + 0.5) * cellSize
+                        )
+                }
+            }
+            .allowsHitTesting(false)
+        }
     }
 
     /// One shared selection rectangle that glides between cells instead of
