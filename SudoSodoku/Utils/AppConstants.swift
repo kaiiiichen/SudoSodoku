@@ -7,6 +7,8 @@ enum AppConstants {
     /// Global ELO ranking (ASC format: Integer, best = highest).
     static let eloLeaderboardID = "\(leaderboardPrefix).elo"
 
+    static let achievementPrefix = "dev.kaichen.sudoku.app.achievement"
+
     /// Per-difficulty boards are configured in ASC as "Elapsed Time — To the
     /// Second" (best = lowest), so submitted values are whole seconds.
     /// Returns 0 for non-positive durations, which callers must not submit —

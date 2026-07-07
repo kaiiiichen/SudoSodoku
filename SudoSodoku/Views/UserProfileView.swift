@@ -3,6 +3,7 @@ import SwiftUI
 struct UserProfileView: View {
     @ObservedObject private var storage = StorageManager.shared
     @ObservedObject private var stats = StatisticsManager.shared
+    @ObservedObject private var achievements = AchievementManager.shared
 
     private var ratingInfo: (title: String, color: Color) {
         RatingManager.shared.getRankTitle(rating: storage.userRating)
@@ -48,6 +49,13 @@ struct UserProfileView: View {
                     }
                     .padding(.horizontal)
 
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("ACHIEVEMENTS:").font(.system(size: 14, weight: .bold, design: .monospaced)).foregroundColor(.gray)
+                        ForEach(Achievement.allCases) { achievement in
+                            achievementRow(achievement)
+                        }
+                    }.padding().background(Color.white.opacity(0.05)).cornerRadius(12).padding(.horizontal)
+
                     Spacer()
 
                     VStack(alignment: .leading, spacing: 15) {
@@ -62,5 +70,24 @@ struct UserProfileView: View {
             }
         }
         .navigationBarTitleDisplayMode(.inline)
+    }
+
+    @ViewBuilder
+    private func achievementRow(_ achievement: Achievement) -> some View {
+        let unlocked = achievements.isUnlocked(achievement)
+        HStack(spacing: 10) {
+            Text(unlocked ? "[✓]" : "[ ]")
+                .font(.system(size: 13, weight: .bold, design: .monospaced))
+                .foregroundColor(unlocked ? .green : .gray.opacity(0.6))
+            VStack(alignment: .leading, spacing: 2) {
+                Text(achievement.title)
+                    .font(.system(size: 13, weight: .bold, design: .monospaced))
+                    .foregroundColor(unlocked ? .white : .gray)
+                Text(achievement.isSecret && !unlocked ? "????????" : achievement.detail)
+                    .font(.system(size: 10, design: .monospaced))
+                    .foregroundColor(.gray.opacity(0.8))
+            }
+            Spacer()
+        }
     }
 }

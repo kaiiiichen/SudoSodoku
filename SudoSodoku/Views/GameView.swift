@@ -16,6 +16,11 @@ struct GameView: View {
     @AppStorage("showPlayTimer") private var showPlayTimer = true
     @State private var clockNow = Date()
     @State private var showBreachLog = false
+    @State private var showSudoersJoke = false
+
+    @ObservedObject private var achievements = AchievementManager.shared
+    @State private var toastText: String?
+    @State private var pendingToast: String?
     private let clockTicker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     enum ExitAction {
@@ -40,7 +45,22 @@ struct GameView: View {
             TerminalBackground()
                 .onTapGesture { game.selectedCellIndex = nil }
 
-            if game.isGenerating || showBreachLog {
+            if showSudoersJoke {
+                SudoersInterstitial(
+                    username: GameCenterManager.shared.isAuthenticated
+                        ? GameCenterManager.shared.playerName.lowercased()
+                        : "user",
+                    onFinished: {
+                        SudoersJoke.markSeen()
+                        AchievementManager.shared.unlockIncidentReported()
+                        withAnimation(.easeOut(duration: 0.2)) { showSudoersJoke = false }
+                        if let difficulty {
+                            showBreachLog = true
+                            game.generateGame(for: difficulty)
+                        }
+                    }
+                )
+            } else if game.isGenerating || showBreachLog {
                 BreachLogView(
                     difficulty: game.difficulty,
                     isGenerating: game.isGenerating,
@@ -62,6 +82,11 @@ struct GameView: View {
                                 Text("T+\(DateFormatting.playClock(game.playDuration(at: clockNow)))")
                                     .font(.system(size: 10, design: .monospaced))
                                     .foregroundColor(.green.opacity(0.8))
+                            }
+                            if game.streak >= 5 {
+                                Text("streak: \(game.streak) ▲")
+                                    .font(.system(size: 10, design: .monospaced))
+                                    .foregroundColor(.cyan.opacity(0.9))
                             }
                         }
 
@@ -148,8 +173,32 @@ struct GameView: View {
                 )
                 .zIndex(100)
             }
+
+            if let toastText {
+                Text(toastText)
+                    .font(.system(size: 12, weight: .bold, design: .monospaced))
+                    .foregroundColor(.green)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(Color.black.opacity(0.85))
+                    .cornerRadius(8)
+                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.green.opacity(0.6), lineWidth: 1))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    .padding(.top, 60)
+                    .transition(.opacity)
+                    .zIndex(50)
+            }
         }
         .navigationBarHidden(true)
+        .onChange(of: achievements.justUnlocked) { _, unlocked in
+            guard let first = unlocked.first else { return }
+            let suffix = unlocked.count > 1 ? " +\(unlocked.count - 1)" : ""
+            pendingToast = ">> ACHIEVEMENT: \(first.title)\(suffix)"
+            if !showVictoryAnimation { presentToast() }
+        }
+        .onChange(of: showVictoryAnimation) { _, showing in
+            if !showing { presentToast() }
+        }
         .onReceive(clockTicker) { clockNow = $0 }
         .onChange(of: game.isGenerating) { _, generating in
             if generating { showBreachLog = true }
@@ -176,8 +225,12 @@ struct GameView: View {
                 game.loadFromRecord(record)
                 if record.isSolved { game.showSolution() }
             } else if let difficulty {
-                showBreachLog = true
-                game.generateGame(for: difficulty)
+                if SudoersJoke.shouldShow(for: difficulty) {
+                    showSudoersJoke = true
+                } else {
+                    showBreachLog = true
+                    game.generateGame(for: difficulty)
+                }
             }
         }
         .alert("SAVE_PROGRESS?", isPresented: $showSaveAlert) {
@@ -188,6 +241,16 @@ struct GameView: View {
             Button("DISCARD (Delete)", role: .destructive) { game.discardCurrentRecord(); performPendingAction() }
             Button("CANCEL", role: .cancel) { pendingExitAction = nil }
         } message: { Text("Do you want to save this session to your archives?") }
+    }
+
+    private func presentToast() {
+        guard let text = pendingToast else { return }
+        pendingToast = nil
+        withAnimation(.easeIn(duration: 0.2)) { toastText = text }
+        Task {
+            try? await Task.sleep(for: .seconds(2.6))
+            withAnimation(.easeOut(duration: 0.3)) { toastText = nil }
+        }
     }
 
     private func handleExitRequest(_ action: ExitAction) {

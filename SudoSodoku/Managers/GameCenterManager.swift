@@ -31,6 +31,7 @@ class GameCenterManager: NSObject, ObservableObject {
                 if localPlayer.isAuthenticated {
                     self.isAuthenticated = true
                     self.playerName = localPlayer.displayName
+                    AchievementManager.shared.flushPendingReports()
                     localPlayer.loadPhoto(for: .small) { image, _ in
                         Task { @MainActor in
                             if let image {
