@@ -49,6 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Achievement unlocks had no visible feedback: the toast raced the victory overlay and could expire unseen behind the matrix rain. Unlocks now render inside the victory sequence itself (`>> UNLOCKED: ...` under the ELO ticker), and the sudoers interstitial types out its own secret-achievement line — the separate toast and its cross-view choreography are gone
 - Pinned `IPHONEOS_DEPLOYMENT_TARGET` back to the literal `17.0` on all targets: Xcode's "Update to recommended settings" had rewritten it to `$(RECOMMENDED_IPHONEOS_DEPLOYMENT_TARGET)`, which Xcode Cloud's toolchain resolves to nothing, dropping the deployment target to the SDK floor and failing builds with iOS 16/17 availability errors
 
 ### Removed

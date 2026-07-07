@@ -52,20 +52,19 @@ final class AchievementManagerTests: XCTestCase {
     // MARK: - Manager state
 
     func testUnlockPersistsAndNeverRepeats() {
-        manager.evaluateVictory(context(totalSolved: 1))
+        let first = manager.evaluateVictory(context(totalSolved: 1))
+        XCTAssertEqual(first, [.helloWorld])
         XCTAssertTrue(manager.isUnlocked(.helloWorld))
-        XCTAssertEqual(manager.justUnlocked, [.helloWorld])
 
-        manager.evaluateVictory(context(totalSolved: 2))
-        XCTAssertEqual(manager.justUnlocked, [.helloWorld],
-                       "A repeat victory must not re-announce old unlocks")
+        let repeated = manager.evaluateVictory(context(totalSolved: 2))
+        XCTAssertTrue(repeated.isEmpty, "A repeat victory must not re-announce old unlocks")
         XCTAssertEqual(defaults.stringArray(forKey: "unlockedAchievements")?.count, 1)
     }
 
     func testIncidentReportedIsAOneShotEasterEgg() {
-        manager.unlockIncidentReported()
+        XCTAssertEqual(manager.unlockIncidentReported(), [.incidentReported])
         XCTAssertTrue(manager.isUnlocked(.incidentReported))
-        XCTAssertEqual(manager.justUnlocked, [.incidentReported])
+        XCTAssertTrue(manager.unlockIncidentReported().isEmpty, "Second trigger returns nothing new")
     }
 
     func testUnauthenticatedUnlocksQueueForLaterReport() {

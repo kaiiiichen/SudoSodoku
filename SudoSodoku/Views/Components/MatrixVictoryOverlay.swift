@@ -6,6 +6,7 @@ import SwiftUI
 struct MatrixVictoryOverlay: View {
     let ratingGained: Int
     let newRating: Int
+    let unlockedAchievements: [Achievement]
     var onDismiss: () -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -67,6 +68,16 @@ struct MatrixVictoryOverlay: View {
                                 .font(.system(size: 18, weight: .heavy, design: .monospaced))
                                 .foregroundColor(newTier.color)
                                 .shadow(color: newTier.color, radius: 12)
+                        }
+                        if !unlockedAchievements.isEmpty {
+                            VStack(alignment: .leading, spacing: 4) {
+                                ForEach(unlockedAchievements) { achievement in
+                                    Text(">> UNLOCKED: \(achievement.title)")
+                                        .font(.system(size: 13, weight: .bold, design: .monospaced))
+                                        .foregroundColor(.yellow)
+                                }
+                            }
+                            .padding(.top, 6)
                         }
                     }
                     .transition(.opacity)
