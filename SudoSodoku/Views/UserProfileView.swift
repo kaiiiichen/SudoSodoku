@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct UserProfileView: View {
-    var commandPrefix: String = "sudo sodoku whoami"
+    var commandPrefix: String = "sudo sudosodoku whoami"
 
     @ObservedObject private var storage = StorageManager.shared
     @ObservedObject private var stats = StatisticsManager.shared

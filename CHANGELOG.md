@@ -11,8 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Every screen entered from the landing page now reads as one continuous, accumulating shell command instead of separate button taps: picking `breach`, `archives`, `stats`, or `whoami` types the subcommand into the prompt before navigating, and the destination screen echoes the full command (e.g. `sudo sodoku breach --easy`) it was reached with (#47)
+- Every screen entered from the landing page now reads as one continuous, accumulating shell command instead of separate button taps: picking `breach`, `archives`, `stats`, or `whoami` types the subcommand into the prompt before navigating, and the destination screen echoes the full command (e.g. `sudo sudosodoku breach --easy`) it was reached with (#47)
 - Mode selection's tab-completion menu is pushed further down the screen instead of sitting directly under the prompt (#47)
+- Command-line branding renamed from `sudo sodoku` to `sudo sudosodoku` everywhere the literal command appears: the landing hero title, the composer's base command, and every echoed command header (#51)
 
 ---
 

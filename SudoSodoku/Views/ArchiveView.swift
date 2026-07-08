@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ArchiveView: View {
-    var commandPrefix: String = "sudo sodoku archives"
+    var commandPrefix: String = "sudo sudosodoku archives"
 
     @ObservedObject var storage = StorageManager.shared
     @State private var selectedRecordForAction: GameRecord?

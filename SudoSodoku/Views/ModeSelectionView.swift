@@ -5,9 +5,9 @@ import SwiftUI
 /// the command, the command "executes", and the breach begins — flowing into
 /// the loading log, which opens with this very command.
 struct ModeSelectionView: View {
-    /// The shell session so far, e.g. "sudo sodoku" — echoed back before this
+    /// The shell session so far, e.g. "sudo sudosodoku" — echoed back before this
     /// screen's own "breach" subcommand so the whole run reads as one line.
-    var commandPrefix: String = "sudo sodoku"
+    var commandPrefix: String = "sudo sudosodoku"
 
     @State private var launchDifficulty: Difficulty?
     @State private var composerKey = UUID()

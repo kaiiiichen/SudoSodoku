@@ -21,7 +21,7 @@ struct LandingView: View {
 
                 TerminalCommandComposer(
                     awaitingComment: "# awaiting command",
-                    baseCommand: "sudo sodoku",
+                    baseCommand: "sudo sudosodoku",
                     completionComment: "# tab_completion:",
                     options: [
                         CommandOption(id: LandingTarget.breach.rawValue, label: "breach", detail: "// initiate new puzzle", color: .green),
@@ -43,13 +43,13 @@ struct LandingView: View {
         .navigationDestination(item: $launchTarget) { target in
             switch target {
             case .breach:
-                ModeSelectionView(commandPrefix: "sudo sodoku")
+                ModeSelectionView(commandPrefix: "sudo sudosodoku")
             case .archives:
-                ArchiveView(commandPrefix: "sudo sodoku archives")
+                ArchiveView(commandPrefix: "sudo sudosodoku archives")
             case .stats:
-                StatsView(commandPrefix: "sudo sodoku stats")
+                StatsView(commandPrefix: "sudo sudosodoku stats")
             case .whoami:
-                UserProfileView(commandPrefix: "sudo sodoku whoami")
+                UserProfileView(commandPrefix: "sudo sudosodoku whoami")
             }
         }
         .onAppear {
@@ -79,7 +79,7 @@ struct LandingView: View {
 
     private var hero: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("sudo sodoku")
+            Text("sudo sudosodoku")
                 .font(.system(size: 54, weight: .heavy, design: .monospaced))
                 .foregroundColor(.white)
                 .shadow(color: .green.opacity(glowStrength), radius: 15)
