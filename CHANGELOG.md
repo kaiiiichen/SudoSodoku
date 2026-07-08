@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+_Nothing yet._
+
+---
+
+## [2.0.0] - 2026-07-08
+
+### 🚀 sudo solve — root access for logical purists
+
+v2.0.0 is the release where SudoSodoku becomes what it always wanted to be: a full terminal fantasy with a real competitive ladder. Game Center leaderboards and achievements go live, every puzzle now reads as hand-crafted, and the whole game got a feel pass — haptics, signature moments, and accessibility discipline throughout.
+
+**Requirements:** iOS 17.0+, iPhone only. Internet optional (Game Center).
+
 ### Added
 
 - Completion time tracking: play clock accumulates active time per game, pauses in the background and freezes on victory; terminal-style `T+MM:SS` timer in the game header (toggleable via the game menu), duration shown on victory, in archive rows, and in personal bests (#4)

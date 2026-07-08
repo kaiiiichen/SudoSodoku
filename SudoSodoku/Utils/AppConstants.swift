@@ -18,7 +18,7 @@ enum AppConstants {
     }
 
     static var marketingVersion: String {
-        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "2.0.0"
     }
 
     static func leaderboardID(for difficulty: String) -> String {
