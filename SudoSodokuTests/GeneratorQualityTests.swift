@@ -38,6 +38,53 @@ final class GeneratorQualityTests: XCTestCase {
         assertFloors(puzzle, box: 2, row: 1, column: 1, label: "MEDIUM")
     }
 
+    // MARK: - Handcrafted qualities (aesthetic styles + technique identity)
+
+    func testDigHolesHonorsEachSymmetryStyle() {
+        let solved = SudokuGenerator.generateSolvedBoard()
+        let noFloors = SudokuGenerator.ClueFloors(box: 0, row: 0, column: 0)
+
+        for style in SudokuGenerator.SymmetryStyle.allCases where style != .free {
+            let puzzle = SudokuGenerator.digHoles(
+                solvedBoard: solved, targetClues: 32, floors: noFloors, symmetry: style
+            )
+            for index in 0..<81 {
+                XCTAssertEqual(
+                    puzzle[index] == 0, puzzle[style.partner(of: index)] == 0,
+                    "\(style): hole pattern must mirror its own style at \(index)"
+                )
+            }
+        }
+    }
+
+    func testSymmetryOrbitsAreInvolutions() {
+        // Every style must pair cells symmetrically: partner(partner(i)) == i.
+        for style in SudokuGenerator.SymmetryStyle.allCases {
+            for index in 0..<81 {
+                XCTAssertEqual(style.partner(of: style.partner(of: index)), index,
+                               "\(style) is not an involution at \(index)")
+            }
+        }
+    }
+
+    func testHardIsDesignedAroundAnIntermediateAha() {
+        let (puzzle, _, _) = SudokuGenerator.generatePuzzle(targetDifficulty: .hard)
+        XCTAssertEqual(SudokuGenerator.techniqueTier(puzzle: puzzle), .intermediate,
+                       "HARD must require intermediate techniques but never more")
+        XCTAssertFalse(SudokuGenerator.solveWithSingles(puzzle: puzzle).solved,
+                       "HARD must not fall to singles alone")
+    }
+
+    func testMasterResistsIntermediateTechniques() {
+        let (puzzle, _, _) = SudokuGenerator.generatePuzzle(targetDifficulty: .master)
+        XCTAssertEqual(SudokuGenerator.techniqueTier(puzzle: puzzle), .advanced)
+    }
+
+    func testMediumNeverDemandsAdvancedTechniques() {
+        let (puzzle, _, _) = SudokuGenerator.generatePuzzle(targetDifficulty: .medium)
+        XCTAssertNotEqual(SudokuGenerator.techniqueTier(puzzle: puzzle), .advanced)
+    }
+
     // MARK: - digHoles floor mechanics (no generation loop)
 
     func testDigHolesNeverDropsBelowFloors() {
@@ -46,7 +93,8 @@ final class GeneratorQualityTests: XCTestCase {
         let puzzle = SudokuGenerator.digHoles(
             solvedBoard: solved,
             targetClues: 20,
-            floors: SudokuGenerator.ClueFloors(box: 3, row: 2, column: 2)
+            floors: SudokuGenerator.ClueFloors(box: 3, row: 2, column: 2),
+            symmetry: .rotational
         )
         assertFloors(puzzle, box: 3, row: 2, column: 2, label: "digHoles")
         XCTAssertEqual(SudokuGenerator.countSolutions(board: puzzle, limit: 2), 1)

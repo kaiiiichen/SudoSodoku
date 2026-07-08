@@ -16,6 +16,42 @@ struct SudokuGenerator {
         return units
     }()
 
+    /// Aesthetic layout of the clue pattern. Hand-made collections vary:
+    /// symmetric patterns (of several kinds) are common but by no means
+    /// universal — constructors deliberately break symmetry too. Each puzzle
+    /// picks one style at random, so a session reads like a varied book
+    /// rather than one template.
+    enum SymmetryStyle: CaseIterable {
+        case rotational       // 180° point symmetry
+        case horizontalMirror // left-right
+        case verticalMirror   // top-bottom
+        case diagonal         // main diagonal (transpose)
+        case antiDiagonal
+        case free             // deliberately unconstrained
+
+        func partner(of index: Int) -> Int {
+            let row = index / 9
+            let col = index % 9
+            switch self {
+            case .rotational: return 80 - index
+            case .horizontalMirror: return row * 9 + (8 - col)
+            case .verticalMirror: return (8 - row) * 9 + col
+            case .diagonal: return col * 9 + row
+            case .antiDiagonal: return (8 - col) * 9 + (8 - row)
+            case .free: return index
+            }
+        }
+
+        /// The cell group dug together: a symmetric pair, or the cell alone
+        /// when it lies on the style's axis (or the style is free).
+        func orbit(of index: Int) -> [Int] {
+            let partner = partner(of: index)
+            return partner == index
+                ? [index]
+                : [Swift.min(index, partner), Swift.max(index, partner)]
+        }
+    }
+
     /// Minimum clues that must survive digging per row/column/box, so easier
     /// boards can't end up with near-empty regions (a top-dense board with a
     /// deserted bottom half dead-ends a human even when technically solvable).
@@ -35,21 +71,26 @@ struct SudokuGenerator {
     }
 
     static func generatePuzzle(targetDifficulty: Difficulty) -> ([Int], [Int], Int) {
-        let solvedBoard = generateSolvedBoard()
         let floors = clueFloors(for: targetDifficulty)
         let targetCenter = Double(targetDifficulty.scoreRange.lowerBound + targetDifficulty.scoreRange.upperBound) / 2.0
 
         // Best-effort fallbacks, preferring boards that pass the quality gate.
-        var bestQualified: (board: [Int], score: Int)?
-        var bestAny: (board: [Int], score: Int)?
+        var bestQualified: (board: [Int], solution: [Int], score: Int)?
+        var bestAny: (board: [Int], solution: [Int], score: Int)?
 
-        func isCloser(_ score: Int, than current: (board: [Int], score: Int)?) -> Bool {
+        func isCloser(_ score: Int, than current: (board: [Int], solution: [Int], score: Int)?) -> Bool {
             guard let current else { return true }
             return abs(Double(score) - targetCenter) < abs(Double(current.score) - targetCenter)
         }
 
         let maxAttempts = 40
         for _ in 0..<maxAttempts {
+            // A fresh solution grid and a fresh aesthetic per attempt: some
+            // grids simply cannot yield a given technique tier under a given
+            // pattern, and 40 digs of the same grid would inherit that fate.
+            let solvedBoard = generateSolvedBoard()
+            let symmetry = SymmetryStyle.allCases.randomElement() ?? .free
+
             let cluesToKeep: Int
             switch targetDifficulty {
             case .easy: cluesToKeep = Int.random(in: 36...50)
@@ -58,27 +99,60 @@ struct SudokuGenerator {
             case .master: cluesToKeep = Int.random(in: 20...25)
             }
 
-            let puzzle = digHoles(solvedBoard: solvedBoard, targetClues: cluesToKeep, floors: floors)
+            var puzzle = digHoles(solvedBoard: solvedBoard, targetClues: cluesToKeep, floors: floors, symmetry: symmetry)
+
+            // Technique identity per difficulty, like hand-crafted books:
+            // EASY reads as pure singles with breadth, MEDIUM never demands
+            // more than intermediate techniques, HARD is designed around an
+            // intermediate "aha" (required, but sufficient — no guessing),
+            // MASTER resists even intermediate techniques.
+            //
+            // HARD/MASTER boards that come out too tame are progressively
+            // deepened: keep digging (same style) on the same board until
+            // the tier is reached or nothing more can be dug.
+            let qualifies: Bool
+            switch targetDifficulty {
+            case .easy:
+                let analysis = solveWithSingles(puzzle: puzzle)
+                qualifies = analysis.solved && analysis.minChoices >= 2
+            case .medium:
+                qualifies = techniqueTier(puzzle: puzzle) != .advanced
+            case .hard, .master:
+                let satisfied: (SolveTier) -> Bool = targetDifficulty == .hard
+                    ? { $0 == .intermediate }
+                    : { $0 == .advanced }
+                var tier = techniqueTier(puzzle: puzzle)
+                var clues = puzzle.filter { $0 != 0 }.count
+                while !satisfied(tier), tier != .advanced, clues > 20 {
+                    let deeper = digHoles(solvedBoard: puzzle, targetClues: clues - 2, floors: floors, symmetry: symmetry)
+                    let deeperClues = deeper.filter { $0 != 0 }.count
+                    guard deeperClues < clues else { break }
+                    puzzle = deeper
+                    clues = deeperClues
+                    tier = techniqueTier(puzzle: puzzle)
+                }
+                qualifies = satisfied(tier)
+            }
+
             let analysis = solveWithSingles(puzzle: puzzle)
             let normalizedScore = normalize(analysis.rawScore)
-
-            // EASY must be finishable with singles alone and never funnel the
-            // player into a single forced move (endgame excepted).
-            let qualifies = targetDifficulty != .easy || (analysis.solved && analysis.minChoices >= 2)
 
             if qualifies && targetDifficulty.scoreRange.contains(normalizedScore) {
                 return (puzzle, solvedBoard, normalizedScore)
             }
             if qualifies && isCloser(normalizedScore, than: bestQualified) {
-                bestQualified = (puzzle, normalizedScore)
+                bestQualified = (puzzle, solvedBoard, normalizedScore)
             }
             if isCloser(normalizedScore, than: bestAny) {
-                bestAny = (puzzle, normalizedScore)
+                bestAny = (puzzle, solvedBoard, normalizedScore)
             }
         }
 
-        let fallback = bestQualified ?? bestAny ?? (solvedBoard, 0)
-        return (fallback.board, solvedBoard, fallback.score)
+        if let fallback = bestQualified ?? bestAny {
+            return (fallback.board, fallback.solution, fallback.score)
+        }
+        let solved = generateSolvedBoard()
+        return (solved, solved, 0)
     }
 
     static func normalize(_ raw: Int) -> Int {
@@ -144,6 +218,148 @@ struct SudokuGenerator {
 
     static func evaluateDifficulty(puzzle: [Int]) -> Int {
         solveWithSingles(puzzle: puzzle).rawScore
+    }
+
+    // MARK: - Technique tiers (the identity of each difficulty)
+
+    /// The human technique level a puzzle demands, mirroring how published
+    /// (hand-crafted) collections grade: EASY reads as singles, HARD is
+    /// designed around an intermediate "aha", MASTER resists even that.
+    enum SolveTier {
+        case singles        // naked + hidden singles finish it
+        case intermediate   // needs locked candidates and/or naked pairs
+        case advanced       // resists all of the above
+    }
+
+    static let peersByCell: [[Int]] = (0..<81).map { index in
+        let row = index / 9
+        let col = index % 9
+        var peers = Set<Int>()
+        for i in 0..<9 {
+            peers.insert(row * 9 + i)
+            peers.insert(i * 9 + col)
+            peers.insert(((row / 3) * 3 + i / 3) * 9 + (col / 3) * 3 + i % 3)
+        }
+        peers.remove(index)
+        return Array(peers)
+    }
+
+    static func techniqueTier(puzzle: [Int]) -> SolveTier {
+        var board = puzzle
+        var candidates: [Set<Int>] = (0..<81).map {
+            board[$0] == 0 ? Set(getCandidates(board: board, index: $0)) : []
+        }
+        var usedIntermediate = false
+
+        func place(_ index: Int, _ value: Int) {
+            board[index] = value
+            candidates[index] = []
+            for peer in peersByCell[index] {
+                candidates[peer].remove(value)
+            }
+        }
+
+        while true {
+            // Singles first, to a fixpoint.
+            if let index = (0..<81).first(where: { board[$0] == 0 && candidates[$0].count == 1 }) {
+                place(index, candidates[index].first!)
+                continue
+            }
+
+            var placedHiddenSingle = false
+            hiddenScan: for unit in allUnits {
+                var positions = [Int: [Int]]()
+                for index in unit where board[index] == 0 {
+                    for value in candidates[index] {
+                        positions[value, default: []].append(index)
+                    }
+                }
+                for (value, cells) in positions where cells.count == 1 {
+                    place(cells[0], value)
+                    placedHiddenSingle = true
+                    break hiddenScan
+                }
+            }
+            if placedHiddenSingle { continue }
+
+            if !board.contains(0) {
+                return usedIntermediate ? .intermediate : .singles
+            }
+
+            // Intermediate eliminations: locked candidates (pointing and
+            // claiming) plus naked pairs. Any elimination re-enters the
+            // singles loop.
+            var eliminated = false
+
+            // Pointing: within a box, a value confined to one row/column
+            // eliminates that value from the rest of the line.
+            for box in 18..<27 {
+                let cells = allUnits[box]
+                var positions = [Int: [Int]]()
+                for index in cells where board[index] == 0 {
+                    for value in candidates[index] {
+                        positions[value, default: []].append(index)
+                    }
+                }
+                for (value, spots) in positions where spots.count > 1 {
+                    let rows = Set(spots.map { $0 / 9 })
+                    let cols = Set(spots.map { $0 % 9 })
+                    if let row = rows.first, rows.count == 1 {
+                        for index in allUnits[row] where !cells.contains(index) {
+                            if candidates[index].remove(value) != nil { eliminated = true }
+                        }
+                    }
+                    if let col = cols.first, cols.count == 1 {
+                        for index in allUnits[9 + col] where !cells.contains(index) {
+                            if candidates[index].remove(value) != nil { eliminated = true }
+                        }
+                    }
+                }
+            }
+
+            // Claiming: within a row/column, a value confined to one box
+            // eliminates it from the rest of that box.
+            for line in 0..<18 {
+                let cells = allUnits[line]
+                var positions = [Int: [Int]]()
+                for index in cells where board[index] == 0 {
+                    for value in candidates[index] {
+                        positions[value, default: []].append(index)
+                    }
+                }
+                for (value, spots) in positions where spots.count > 1 {
+                    let boxes = Set(spots.map { ($0 / 9 / 3) * 3 + ($0 % 9) / 3 })
+                    if let box = boxes.first, boxes.count == 1 {
+                        for index in allUnits[18 + box] where !cells.contains(index) {
+                            if candidates[index].remove(value) != nil { eliminated = true }
+                        }
+                    }
+                }
+            }
+
+            // Naked pairs: two cells of a unit sharing the same two
+            // candidates eliminate them from the unit's other cells.
+            for unit in allUnits {
+                let pairCells = unit.filter { board[$0] == 0 && candidates[$0].count == 2 }
+                guard pairCells.count >= 2 else { continue }
+                for i in 0..<(pairCells.count - 1) {
+                    for j in (i + 1)..<pairCells.count where candidates[pairCells[i]] == candidates[pairCells[j]] {
+                        for index in unit
+                        where index != pairCells[i] && index != pairCells[j] && board[index] == 0 {
+                            for value in candidates[pairCells[i]] {
+                                if candidates[index].remove(value) != nil { eliminated = true }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if eliminated {
+                usedIntermediate = true
+                continue
+            }
+            return .advanced
+        }
     }
 
     static func getCandidates(board: [Int], index: Int) -> [Int] {
@@ -220,69 +436,132 @@ struct SudokuGenerator {
         return true
     }
 
-    static func digHoles(solvedBoard: [Int], targetClues: Int, floors: ClueFloors) -> [Int] {
+    /// Digs holes down to `targetClues`, following the given aesthetic
+    /// style (cells of an orbit are dug together). Accepts a full solution
+    /// or an already partially dug board with the same style, so callers
+    /// can progressively deepen a puzzle.
+    static func digHoles(solvedBoard: [Int], targetClues: Int, floors: ClueFloors, symmetry: SymmetryStyle) -> [Int] {
         var puzzle = solvedBoard
-        var rowClues = [Int](repeating: 9, count: 9)
-        var colClues = [Int](repeating: 9, count: 9)
-        var boxClues = [Int](repeating: 9, count: 9)
-        let indices = Array(0..<81).shuffled()
-        var holesToDig = 81 - targetClues
+        var rowClues = [Int](repeating: 0, count: 9)
+        var colClues = [Int](repeating: 0, count: 9)
+        var boxClues = [Int](repeating: 0, count: 9)
+        for index in 0..<81 where puzzle[index] != 0 {
+            let row = index / 9
+            let col = index % 9
+            rowClues[row] += 1
+            colClues[col] += 1
+            boxClues[(row / 3) * 3 + col / 3] += 1
+        }
+        var holesToDig = puzzle.filter { $0 != 0 }.count - targetClues
 
-        for idx in indices {
+        // Would digging every cell in the group keep all floors intact?
+        func groupRespectsFloors(_ cells: [Int]) -> Bool {
+            var rows = rowClues, cols = colClues, boxes = boxClues
+            for idx in cells {
+                let row = idx / 9
+                let col = idx % 9
+                let box = (row / 3) * 3 + col / 3
+                rows[row] -= 1
+                cols[col] -= 1
+                boxes[box] -= 1
+                if rows[row] < floors.row || cols[col] < floors.column || boxes[box] < floors.box {
+                    return false
+                }
+            }
+            return true
+        }
+
+        var visitedOrbits = Set<Int>()
+        for idx in Array(0..<81).shuffled() {
             if holesToDig <= 0 { break }
-            let row = idx / 9
-            let col = idx % 9
-            let box = (row / 3) * 3 + col / 3
-            guard rowClues[row] > floors.row,
-                  colClues[col] > floors.column,
-                  boxClues[box] > floors.box else { continue }
+            let cells = symmetry.orbit(of: idx)
+            guard visitedOrbits.insert(cells[0]).inserted else { continue }
+            guard cells.allSatisfy({ puzzle[$0] != 0 }) else { continue } // already dug
+            guard cells.count <= holesToDig, groupRespectsFloors(cells) else { continue }
 
-            let backup = puzzle[idx]
-            puzzle[idx] = 0
+            let backups = cells.map { puzzle[$0] }
+            for cell in cells { puzzle[cell] = 0 }
+
             if countSolutions(board: puzzle, limit: 2) == 1 {
-                holesToDig -= 1
-                rowClues[row] -= 1
-                colClues[col] -= 1
-                boxClues[box] -= 1
+                holesToDig -= cells.count
+                for cell in cells {
+                    let row = cell / 9
+                    let col = cell % 9
+                    rowClues[row] -= 1
+                    colClues[col] -= 1
+                    boxClues[(row / 3) * 3 + col / 3] -= 1
+                }
             } else {
-                puzzle[idx] = backup
+                for (offset, cell) in cells.enumerated() { puzzle[cell] = backups[offset] }
             }
         }
         return puzzle
     }
 
+    /// Bitmask MRV solution counter: row/column/box occupancy as 9-bit
+    /// masks, candidates via bitwise complement, branching on the most
+    /// constrained cell with contradiction pruning. This is the generator's
+    /// hot path — it runs once per attempted dig.
     static func countSolutions(board: [Int], limit: Int) -> Int {
-        var copy = board
+        var cells = board
+        var rowMask = [Int](repeating: 0, count: 9)
+        var colMask = [Int](repeating: 0, count: 9)
+        var boxMask = [Int](repeating: 0, count: 9)
+        for index in 0..<81 where cells[index] != 0 {
+            let bit = 1 << (cells[index] - 1)
+            rowMask[index / 9] |= bit
+            colMask[index % 9] |= bit
+            boxMask[(index / 9 / 3) * 3 + (index % 9) / 3] |= bit
+        }
+
         var count = 0
-        _solveCount(&copy, count: &count, limit: limit)
-        return count
-    }
 
-    static func _solveCount(_ board: inout [Int], count: inout Int, limit: Int) {
-        if count >= limit { return }
+        func search() {
+            if count >= limit { return }
 
-        // MRV: branch on the most constrained cell. Collapses the search tree
-        // on sparse boards, where first-empty branching is pathologically slow.
-        var bestIndex = -1
-        var bestCandidates: [Int] = []
-        for index in 0..<81 where board[index] == 0 {
-            let candidates = getCandidates(board: board, index: index)
-            if candidates.isEmpty { return } // contradiction: dead branch
-            if bestIndex == -1 || candidates.count < bestCandidates.count {
-                bestIndex = index
-                bestCandidates = candidates
-                if bestCandidates.count == 1 { break }
+            var bestIndex = -1
+            var bestMask = 0
+            var bestOptions = 10
+            for index in 0..<81 where cells[index] == 0 {
+                let row = index / 9
+                let col = index % 9
+                let box = (row / 3) * 3 + col / 3
+                let mask = ~(rowMask[row] | colMask[col] | boxMask[box]) & 0x1FF
+                let options = mask.nonzeroBitCount
+                if options == 0 { return } // contradiction: dead branch
+                if options < bestOptions {
+                    bestOptions = options
+                    bestIndex = index
+                    bestMask = mask
+                    if options == 1 { break }
+                }
+            }
+            guard bestIndex != -1 else {
+                count += 1
+                return
+            }
+
+            let row = bestIndex / 9
+            let col = bestIndex % 9
+            let box = (row / 3) * 3 + col / 3
+            var mask = bestMask
+            while mask != 0 {
+                let bit = mask & -mask
+                mask &= mask - 1
+                cells[bestIndex] = bit.trailingZeroBitCount + 1
+                rowMask[row] |= bit
+                colMask[col] |= bit
+                boxMask[box] |= bit
+                search()
+                rowMask[row] &= ~bit
+                colMask[col] &= ~bit
+                boxMask[box] &= ~bit
+                cells[bestIndex] = 0
+                if count >= limit { return }
             }
         }
-        guard bestIndex != -1 else {
-            count += 1
-            return
-        }
 
-        for num in bestCandidates {
-            board[bestIndex] = num
-            _solveCount(&board, count: &count, limit: limit)
-        }
-        board[bestIndex] = 0
+        search()
+        return count
     }
 }
