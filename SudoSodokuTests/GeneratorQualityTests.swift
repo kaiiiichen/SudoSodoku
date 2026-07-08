@@ -38,16 +38,31 @@ final class GeneratorQualityTests: XCTestCase {
         assertFloors(puzzle, box: 2, row: 1, column: 1, label: "MEDIUM")
     }
 
-    // MARK: - Handcrafted qualities (symmetry + technique identity)
+    // MARK: - Handcrafted qualities (aesthetic styles + technique identity)
 
-    func testBoardsAreRotationallySymmetric() {
-        for difficulty in Difficulty.allCases {
-            let (puzzle, _, _) = SudokuGenerator.generatePuzzle(targetDifficulty: difficulty)
-            for index in 0...40 {
+    func testDigHolesHonorsEachSymmetryStyle() {
+        let solved = SudokuGenerator.generateSolvedBoard()
+        let noFloors = SudokuGenerator.ClueFloors(box: 0, row: 0, column: 0)
+
+        for style in SudokuGenerator.SymmetryStyle.allCases where style != .free {
+            let puzzle = SudokuGenerator.digHoles(
+                solvedBoard: solved, targetClues: 32, floors: noFloors, symmetry: style
+            )
+            for index in 0..<81 {
                 XCTAssertEqual(
-                    puzzle[index] == 0, puzzle[80 - index] == 0,
-                    "\(difficulty.rawValue): clue pattern must be 180° rotationally symmetric at \(index)"
+                    puzzle[index] == 0, puzzle[style.partner(of: index)] == 0,
+                    "\(style): hole pattern must mirror its own style at \(index)"
                 )
+            }
+        }
+    }
+
+    func testSymmetryOrbitsAreInvolutions() {
+        // Every style must pair cells symmetrically: partner(partner(i)) == i.
+        for style in SudokuGenerator.SymmetryStyle.allCases {
+            for index in 0..<81 {
+                XCTAssertEqual(style.partner(of: style.partner(of: index)), index,
+                               "\(style) is not an involution at \(index)")
             }
         }
     }
@@ -78,7 +93,8 @@ final class GeneratorQualityTests: XCTestCase {
         let puzzle = SudokuGenerator.digHoles(
             solvedBoard: solved,
             targetClues: 20,
-            floors: SudokuGenerator.ClueFloors(box: 3, row: 2, column: 2)
+            floors: SudokuGenerator.ClueFloors(box: 3, row: 2, column: 2),
+            symmetry: .rotational
         )
         assertFloors(puzzle, box: 3, row: 2, column: 2, label: "digHoles")
         XCTAssertEqual(SudokuGenerator.countSolutions(board: puzzle, limit: 2), 1)

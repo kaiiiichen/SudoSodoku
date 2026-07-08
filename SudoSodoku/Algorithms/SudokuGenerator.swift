@@ -16,6 +16,42 @@ struct SudokuGenerator {
         return units
     }()
 
+    /// Aesthetic layout of the clue pattern. Hand-made collections vary:
+    /// symmetric patterns (of several kinds) are common but by no means
+    /// universal — constructors deliberately break symmetry too. Each puzzle
+    /// picks one style at random, so a session reads like a varied book
+    /// rather than one template.
+    enum SymmetryStyle: CaseIterable {
+        case rotational       // 180° point symmetry
+        case horizontalMirror // left-right
+        case verticalMirror   // top-bottom
+        case diagonal         // main diagonal (transpose)
+        case antiDiagonal
+        case free             // deliberately unconstrained
+
+        func partner(of index: Int) -> Int {
+            let row = index / 9
+            let col = index % 9
+            switch self {
+            case .rotational: return 80 - index
+            case .horizontalMirror: return row * 9 + (8 - col)
+            case .verticalMirror: return (8 - row) * 9 + col
+            case .diagonal: return col * 9 + row
+            case .antiDiagonal: return (8 - col) * 9 + (8 - row)
+            case .free: return index
+            }
+        }
+
+        /// The cell group dug together: a symmetric pair, or the cell alone
+        /// when it lies on the style's axis (or the style is free).
+        func orbit(of index: Int) -> [Int] {
+            let partner = partner(of: index)
+            return partner == index
+                ? [index]
+                : [Swift.min(index, partner), Swift.max(index, partner)]
+        }
+    }
+
     /// Minimum clues that must survive digging per row/column/box, so easier
     /// boards can't end up with near-empty regions (a top-dense board with a
     /// deserted bottom half dead-ends a human even when technically solvable).
@@ -49,10 +85,11 @@ struct SudokuGenerator {
 
         let maxAttempts = 40
         for _ in 0..<maxAttempts {
-            // A fresh solution grid per attempt: some grids simply cannot
-            // yield a given technique tier under symmetric digging, and 40
-            // digs of the same grid would all inherit that fate.
+            // A fresh solution grid and a fresh aesthetic per attempt: some
+            // grids simply cannot yield a given technique tier under a given
+            // pattern, and 40 digs of the same grid would inherit that fate.
             let solvedBoard = generateSolvedBoard()
+            let symmetry = SymmetryStyle.allCases.randomElement() ?? .free
 
             let cluesToKeep: Int
             switch targetDifficulty {
@@ -62,7 +99,7 @@ struct SudokuGenerator {
             case .master: cluesToKeep = Int.random(in: 20...25)
             }
 
-            var puzzle = digHoles(solvedBoard: solvedBoard, targetClues: cluesToKeep, floors: floors)
+            var puzzle = digHoles(solvedBoard: solvedBoard, targetClues: cluesToKeep, floors: floors, symmetry: symmetry)
 
             // Technique identity per difficulty, like hand-crafted books:
             // EASY reads as pure singles with breadth, MEDIUM never demands
@@ -71,7 +108,7 @@ struct SudokuGenerator {
             // MASTER resists even intermediate techniques.
             //
             // HARD/MASTER boards that come out too tame are progressively
-            // deepened: keep digging symmetric pairs on the same board until
+            // deepened: keep digging (same style) on the same board until
             // the tier is reached or nothing more can be dug.
             let qualifies: Bool
             switch targetDifficulty {
@@ -87,7 +124,7 @@ struct SudokuGenerator {
                 var tier = techniqueTier(puzzle: puzzle)
                 var clues = puzzle.filter { $0 != 0 }.count
                 while !satisfied(tier), tier != .advanced, clues > 20 {
-                    let deeper = digHoles(solvedBoard: puzzle, targetClues: clues - 2, floors: floors)
+                    let deeper = digHoles(solvedBoard: puzzle, targetClues: clues - 2, floors: floors, symmetry: symmetry)
                     let deeperClues = deeper.filter { $0 != 0 }.count
                     guard deeperClues < clues else { break }
                     puzzle = deeper
@@ -399,10 +436,11 @@ struct SudokuGenerator {
         return true
     }
 
-    /// Digs point-symmetric holes down to `targetClues`. Accepts a full
-    /// solution or an already partially dug (symmetric) board, so callers
+    /// Digs holes down to `targetClues`, following the given aesthetic
+    /// style (cells of an orbit are dug together). Accepts a full solution
+    /// or an already partially dug board with the same style, so callers
     /// can progressively deepen a puzzle.
-    static func digHoles(solvedBoard: [Int], targetClues: Int, floors: ClueFloors) -> [Int] {
+    static func digHoles(solvedBoard: [Int], targetClues: Int, floors: ClueFloors, symmetry: SymmetryStyle) -> [Int] {
         var puzzle = solvedBoard
         var rowClues = [Int](repeating: 0, count: 9)
         var colClues = [Int](repeating: 0, count: 9)
@@ -433,15 +471,12 @@ struct SudokuGenerator {
             return true
         }
 
-        // Handmade puzzles (Nikoli style) place givens with 180-degree
-        // rotational symmetry, so holes are dug in point-symmetric pairs
-        // (the center cell pairs with itself). The clue pattern reads as
-        // designed rather than scattered.
-        for idx in Array(0...40).shuffled() {
+        var visitedOrbits = Set<Int>()
+        for idx in Array(0..<81).shuffled() {
             if holesToDig <= 0 { break }
-            guard puzzle[idx] != 0 else { continue } // pair already dug
-            let partner = 80 - idx
-            let cells = idx == partner ? [idx] : [idx, partner]
+            let cells = symmetry.orbit(of: idx)
+            guard visitedOrbits.insert(cells[0]).inserted else { continue }
+            guard cells.allSatisfy({ puzzle[$0] != 0 }) else { continue } // already dug
             guard cells.count <= holesToDig, groupRespectsFloors(cells) else { continue }
 
             let backups = cells.map { puzzle[$0] }
