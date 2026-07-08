@@ -38,6 +38,38 @@ final class GeneratorQualityTests: XCTestCase {
         assertFloors(puzzle, box: 2, row: 1, column: 1, label: "MEDIUM")
     }
 
+    // MARK: - Handcrafted qualities (symmetry + technique identity)
+
+    func testBoardsAreRotationallySymmetric() {
+        for difficulty in Difficulty.allCases {
+            let (puzzle, _, _) = SudokuGenerator.generatePuzzle(targetDifficulty: difficulty)
+            for index in 0...40 {
+                XCTAssertEqual(
+                    puzzle[index] == 0, puzzle[80 - index] == 0,
+                    "\(difficulty.rawValue): clue pattern must be 180° rotationally symmetric at \(index)"
+                )
+            }
+        }
+    }
+
+    func testHardIsDesignedAroundAnIntermediateAha() {
+        let (puzzle, _, _) = SudokuGenerator.generatePuzzle(targetDifficulty: .hard)
+        XCTAssertEqual(SudokuGenerator.techniqueTier(puzzle: puzzle), .intermediate,
+                       "HARD must require intermediate techniques but never more")
+        XCTAssertFalse(SudokuGenerator.solveWithSingles(puzzle: puzzle).solved,
+                       "HARD must not fall to singles alone")
+    }
+
+    func testMasterResistsIntermediateTechniques() {
+        let (puzzle, _, _) = SudokuGenerator.generatePuzzle(targetDifficulty: .master)
+        XCTAssertEqual(SudokuGenerator.techniqueTier(puzzle: puzzle), .advanced)
+    }
+
+    func testMediumNeverDemandsAdvancedTechniques() {
+        let (puzzle, _, _) = SudokuGenerator.generatePuzzle(targetDifficulty: .medium)
+        XCTAssertNotEqual(SudokuGenerator.techniqueTier(puzzle: puzzle), .advanced)
+    }
+
     // MARK: - digHoles floor mechanics (no generation loop)
 
     func testDigHolesNeverDropsBelowFloors() {

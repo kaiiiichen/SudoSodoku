@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Puzzles now read as hand-crafted (Nikoli style): clue patterns are 180° rotationally symmetric (holes dug in point-symmetric pairs), and every difficulty has a technique identity enforced at generation — EASY solves with singles and always offers parallel moves, MEDIUM never demands more than locked candidates / naked pairs, HARD is designed around a required intermediate "aha" (and never needs more — no guessing), MASTER resists intermediate techniques entirely (#39)
 - Leaderboard submissions previously sent the puzzle difficulty index (0-100), which ranked players by generation luck; scores are now actual performance — solve time per difficulty, ELO on the global board (#11)
 - Set minimum deployment target to iOS 17.0 (aligned project and target settings)
 - iPhone-only app: removed iPad-specific views, routing, and orientation settings
