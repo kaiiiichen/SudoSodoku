@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct StatsView: View {
-    var commandPrefix: String = "sudo sodoku stats"
+    var commandPrefix: String = "sudo sudosodoku stats"
 
     @ObservedObject private var stats = StatisticsManager.shared
     @ObservedObject private var storage = StorageManager.shared
