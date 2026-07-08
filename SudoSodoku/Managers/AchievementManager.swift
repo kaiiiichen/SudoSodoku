@@ -4,11 +4,10 @@ import GameKit
 
 /// Owns the unlocked-achievement set: evaluates victories, persists locally,
 /// reports to Game Center, and queues reports made while signed out.
+/// Callers receive freshly unlocked achievements as return values and own
+/// their presentation — there is no cross-view announcement state.
 final class AchievementManager: ObservableObject {
     static let shared = AchievementManager()
-
-    /// Achievements unlocked by the most recent event, for the in-game toast.
-    @Published private(set) var justUnlocked: [Achievement] = []
 
     private let defaults: UserDefaults
     private let unlockedKey = "unlockedAchievements"
@@ -30,12 +29,16 @@ final class AchievementManager: ObservableObject {
 
     // MARK: - Events
 
-    func evaluateVictory(_ context: VictoryContext) {
+    /// Returns the achievements this victory freshly unlocked (empty when
+    /// everything satisfied was already earned).
+    @discardableResult
+    func evaluateVictory(_ context: VictoryContext) -> [Achievement] {
         unlock(Achievement.satisfied(by: context))
     }
 
     /// Easter egg hook for the sudoers interstitial (#15).
-    func unlockIncidentReported() {
+    @discardableResult
+    func unlockIncidentReported() -> [Achievement] {
         unlock([.incidentReported])
     }
 
@@ -45,7 +48,6 @@ final class AchievementManager: ObservableObject {
     func resetAllProgress() {
         defaults.removeObject(forKey: unlockedKey)
         defaults.removeObject(forKey: pendingReportsKey)
-        justUnlocked = []
         objectWillChange.send()
         if GameCenterManager.shared.isAuthenticated {
             GKAchievement.resetAchievements { _ in }
@@ -62,14 +64,14 @@ final class AchievementManager: ObservableObject {
 
     // MARK: - Internals
 
-    private func unlock(_ candidates: [Achievement]) {
+    private func unlock(_ candidates: [Achievement]) -> [Achievement] {
         let fresh = candidates.filter { !isUnlocked($0) }
-        guard !fresh.isEmpty else { return }
+        guard !fresh.isEmpty else { return [] }
 
         defaults.set(Array(unlockedIDs.union(fresh.map(\.rawValue))), forKey: unlockedKey)
         objectWillChange.send()
-        justUnlocked = fresh
         report(fresh)
+        return fresh
     }
 
     private func report(_ achievements: [Achievement]) {

@@ -47,12 +47,10 @@ final class UserDataResetTests: XCTestCase {
         manager.resetAllProgress()
 
         XCTAssertFalse(manager.isUnlocked(.incidentReported))
-        XCTAssertTrue(manager.justUnlocked.isEmpty)
         XCTAssertNil(defaults.stringArray(forKey: "pendingAchievementReports"),
                      "The offline report queue must be cleared too")
 
-        manager.unlockIncidentReported()
-        XCTAssertEqual(manager.justUnlocked, [.incidentReported],
+        XCTAssertEqual(manager.unlockIncidentReported(), [.incidentReported],
                        "After a reset the unlock must announce again")
     }
 

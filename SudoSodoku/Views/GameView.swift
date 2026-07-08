@@ -18,9 +18,6 @@ struct GameView: View {
     @State private var showBreachLog = false
     @State private var showSudoersJoke = false
 
-    @ObservedObject private var achievements = AchievementManager.shared
-    @State private var toastText: String?
-    @State private var pendingToast: String?
     private let clockTicker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     enum ExitAction {
@@ -169,36 +166,13 @@ struct GameView: View {
                 MatrixVictoryOverlay(
                     ratingGained: game.ratingGained ?? 0,
                     newRating: StorageManager.shared.userRating,
+                    unlockedAchievements: game.victoryUnlocks,
                     onDismiss: { withAnimation(.easeOut(duration: 0.25)) { showVictoryAnimation = false } }
                 )
                 .zIndex(100)
             }
-
-            if let toastText {
-                Text(toastText)
-                    .font(.system(size: 12, weight: .bold, design: .monospaced))
-                    .foregroundColor(.green)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 8)
-                    .background(Color.black.opacity(0.85))
-                    .cornerRadius(8)
-                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.green.opacity(0.6), lineWidth: 1))
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                    .padding(.top, 60)
-                    .transition(.opacity)
-                    .zIndex(50)
-            }
         }
         .navigationBarHidden(true)
-        .onChange(of: achievements.justUnlocked) { _, unlocked in
-            guard let first = unlocked.first else { return }
-            let suffix = unlocked.count > 1 ? " +\(unlocked.count - 1)" : ""
-            pendingToast = ">> ACHIEVEMENT: \(first.title)\(suffix)"
-            if !showVictoryAnimation { presentToast() }
-        }
-        .onChange(of: showVictoryAnimation) { _, showing in
-            if !showing { presentToast() }
-        }
         .onReceive(clockTicker) { clockNow = $0 }
         .onChange(of: game.isGenerating) { _, generating in
             if generating { showBreachLog = true }
@@ -241,16 +215,6 @@ struct GameView: View {
             Button("DISCARD (Delete)", role: .destructive) { game.discardCurrentRecord(); performPendingAction() }
             Button("CANCEL", role: .cancel) { pendingExitAction = nil }
         } message: { Text("Do you want to save this session to your archives?") }
-    }
-
-    private func presentToast() {
-        guard let text = pendingToast else { return }
-        pendingToast = nil
-        withAnimation(.easeIn(duration: 0.2)) { toastText = text }
-        Task {
-            try? await Task.sleep(for: .seconds(2.6))
-            withAnimation(.easeOut(duration: 0.3)) { toastText = nil }
-        }
     }
 
     private func handleExitRequest(_ action: ExitAction) {

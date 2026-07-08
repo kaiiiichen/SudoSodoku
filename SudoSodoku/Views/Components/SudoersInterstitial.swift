@@ -23,6 +23,7 @@ struct SudoersInterstitial: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var showPunchline = false
     @State private var typedCount = 0
+    @State private var showAchievement = false
     @State private var finished = false
 
     private let punchline = "...just kidding. root access granted."
@@ -36,6 +37,9 @@ struct SudoersInterstitial: View {
             Text(String(punchline.prefix(typedCount)))
                 .foregroundColor(.green)
                 .opacity(showPunchline ? 1 : 0)
+            Text(">> UNLOCKED: \(Achievement.incidentReported.title)")
+                .foregroundColor(.yellow)
+                .opacity(showAchievement ? 1 : 0)
         }
         .font(.system(size: 14, weight: .bold, design: .monospaced))
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
@@ -48,7 +52,8 @@ struct SudoersInterstitial: View {
         if reduceMotion {
             showPunchline = true
             typedCount = punchline.count
-            try? await Task.sleep(for: .seconds(2))
+            showAchievement = true
+            try? await Task.sleep(for: .seconds(2.4))
             finish()
             return
         }
@@ -61,7 +66,10 @@ struct SudoersInterstitial: View {
             try? await Task.sleep(for: .milliseconds(40))
             guard !Task.isCancelled, !finished else { return }
         }
-        try? await Task.sleep(for: .milliseconds(700))
+        try? await Task.sleep(for: .milliseconds(350))
+        guard !Task.isCancelled, !finished else { return }
+        withAnimation(.easeIn(duration: 0.25)) { showAchievement = true }
+        try? await Task.sleep(for: .milliseconds(900))
         finish()
     }
 

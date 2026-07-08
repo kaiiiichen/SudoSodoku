@@ -35,6 +35,10 @@ class SudokuGame: ObservableObject {
     /// removals, notes, and undo leave it untouched.
     @Published private(set) var streak = 0
 
+    /// Achievements freshly unlocked by the current victory, rendered inside
+    /// the victory overlay (never as a separate toast that could race it).
+    @Published private(set) var victoryUnlocks: [Achievement] = []
+
     var onSolved: (() -> Void)?
     var currentRecordID: UUID?
 
@@ -90,6 +94,7 @@ class SudokuGame: ObservableObject {
         self.sessionStartTime = Date()
         self.completedUnitPulse = nil
         self.streak = 0
+        self.victoryUnlocks = []
 
         DispatchQueue.global(qos: .userInitiated).async {
             let (puzzle, solution, score) = SudokuGenerator.generatePuzzle(targetDifficulty: difficulty)
@@ -132,6 +137,7 @@ class SudokuGame: ObservableObject {
         currentUndoCount = record.undoCount
         completedUnitPulse = nil
         streak = 0
+        victoryUnlocks = []
 
         board = (0..<81).map { index in
             let initialValue = record.initialBoard[index]
@@ -379,6 +385,7 @@ class SudokuGame: ObservableObject {
         sessionStartTime = Date()
         completedUnitPulse = nil
         streak = 0
+        victoryUnlocks = []
         resetClock(to: 0, running: true)
         saveCurrentState()
     }
@@ -463,7 +470,7 @@ class SudokuGame: ObservableObject {
         saveCurrentState()
 
         // After saveCurrentState so the solved count includes this game.
-        AchievementManager.shared.evaluateVictory(VictoryContext(
+        victoryUnlocks = AchievementManager.shared.evaluateVictory(VictoryContext(
             difficulty: difficulty,
             undoCount: currentUndoCount,
             playDuration: playDuration(),
