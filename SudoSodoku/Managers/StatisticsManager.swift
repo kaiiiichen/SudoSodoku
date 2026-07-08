@@ -15,51 +15,37 @@ class StatisticsManager: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
 
     init() {
-        refreshData()
+        refresh(with: StorageManager.shared.records)
+        // A @Published publisher emits on *willSet*: when this fires, the
+        // singleton still holds the records from before the change. Stats
+        // must be derived from the emitted value - reading back through
+        // StorageManager here would lag storage by one mutation (zeros on
+        // launch, stale numbers after a wipe).
         StorageManager.shared.$records
-            .sink { [weak self] _ in self?.refreshData() }
+            .sink { [weak self] records in self?.refresh(with: records) }
             .store(in: &cancellables)
     }
 
-    func refreshData() {
-        personalBests = getAllDifficultyBests()
-        overallStats = getOverallStats()
-    }
-
-    func getPersonalBests(for difficulty: Difficulty, limit: Int = 10) -> [GameRecord] {
-        StorageManager.shared.records
-            .filter { $0.difficulty == difficulty.rawValue && $0.isSolved }
-            .sorted { $0.logicalEfficiency > $1.logicalEfficiency }
-            .prefix(limit)
-            .map { $0 }
-    }
-
-    func getBestLogicalEfficiency(for difficulty: Difficulty) -> GameRecord? {
-        StorageManager.shared.records
-            .filter { $0.difficulty == difficulty.rawValue && $0.isSolved }
-            .max { $0.logicalEfficiency < $1.logicalEfficiency }
-    }
-
-    func getAllDifficultyBests() -> [Difficulty: GameRecord] {
+    private func refresh(with records: [GameRecord]) {
         var bests: [Difficulty: GameRecord] = [:]
         for difficulty in Difficulty.allCases {
-            if let best = getPersonalBests(for: difficulty, limit: 1).first {
-                bests[difficulty] = best
-            }
+            bests[difficulty] = records
+                .filter { $0.difficulty == difficulty.rawValue && $0.isSolved }
+                .max { $0.logicalEfficiency < $1.logicalEfficiency }
         }
-        return bests
-    }
+        personalBests = bests
 
-    func getOverallStats() -> OverallStats {
-        let records = StorageManager.shared.records
         let solvedRecords = records.filter(\.isSolved)
-        return OverallStats(
+        overallStats = OverallStats(
             totalGames: records.count,
             solvedGames: solvedRecords.count,
             totalUndos: solvedRecords.reduce(0) { $0 + $1.undoCount },
             bestLogicalEfficiency: solvedRecords.max { $0.logicalEfficiency < $1.logicalEfficiency }?.logicalEfficiency ?? 0
         )
     }
+
+    // The methods below are called from view bodies at render time, after
+    // storage's didSet has completed, so reading the singleton is safe here.
 
     func getDifficultyDistribution() -> [Difficulty: Int] {
         var distribution: [Difficulty: Int] = [:]
