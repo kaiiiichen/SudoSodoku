@@ -21,10 +21,16 @@ class GameCenterManager: NSObject, ObservableObject {
             Task { @MainActor in
                 guard let self else { return }
 
-                if let viewController,
-                   let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                   let rootViewController = windowScene.windows.first?.rootViewController {
-                    rootViewController.present(viewController, animated: true)
+                // Never present Game Center's login UI at launch. Signing in
+                // is optional (pure logic, zero noise), and presenting over
+                // the first frame caused the first-launch white hang: the
+                // auth overlay could fail to load (GameOverlayUI proxy
+                // errors) and stall fullscreen. Guests sign in from the
+                // leaderboard screen's access point or Settings > Games.
+                if viewController != nil {
+                    self.isAuthenticated = false
+                    self.playerName = "Guest"
+                    self.playerPhoto = nil
                     return
                 }
 

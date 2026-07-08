@@ -87,9 +87,12 @@ final class AchievementManager: ObservableObject {
             gk.showsCompletionBanner = false // the terminal toast is ours
             return gk
         }
-        GKAchievement.report(reports) { [weak self] error in
-            if error != nil {
-                Task { @MainActor in self?.queueForLater(achievements) }
+        // No self capture: a weak `self` is a mutable var, and referencing
+        // it inside the Sendable completion is an error in Swift 6.
+        GKAchievement.report(reports) { error in
+            guard error != nil else { return }
+            Task { @MainActor in
+                AchievementManager.shared.queueForLater(achievements)
             }
         }
     }
