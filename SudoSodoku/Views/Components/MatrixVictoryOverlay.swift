@@ -13,6 +13,7 @@ struct MatrixVictoryOverlay: View {
     @State private var typedCount = 0
     @State private var displayedRating = 0
     @State private var showRating = false
+    @State private var revealedBadges = 0
     @State private var showHint = false
 
     private let title = "ACCESS GRANTED"
@@ -69,18 +70,20 @@ struct MatrixVictoryOverlay: View {
                                 .foregroundColor(newTier.color)
                                 .shadow(color: newTier.color, radius: 12)
                         }
-                        if !unlockedAchievements.isEmpty {
-                            VStack(alignment: .leading, spacing: 4) {
-                                ForEach(unlockedAchievements) { achievement in
-                                    Text(">> UNLOCKED: \(achievement.title)")
-                                        .font(.system(size: 13, weight: .bold, design: .monospaced))
-                                        .foregroundColor(.yellow)
-                                }
-                            }
-                            .padding(.top, 6)
-                        }
                     }
                     .transition(.opacity)
+                }
+
+                // Act 4: unlock badges pop in one by one, each with its own
+                // haptic tick.
+                if revealedBadges > 0 {
+                    VStack(spacing: 10) {
+                        ForEach(unlockedAchievements.prefix(revealedBadges)) { achievement in
+                            AchievementBadge(achievement: achievement)
+                                .transition(.scale(scale: 0.8).combined(with: .opacity))
+                        }
+                    }
+                    .padding(.top, 8)
                 }
 
                 if showHint {
@@ -101,6 +104,7 @@ struct MatrixVictoryOverlay: View {
             typedCount = title.count
             displayedRating = newRating
             showRating = true
+            revealedBadges = unlockedAchievements.count
             showHint = true
             return
         }
@@ -119,6 +123,15 @@ struct MatrixVictoryOverlay: View {
         withAnimation(.easeOut(duration: 0.9)) { displayedRating = newRating }
         try? await Task.sleep(for: .milliseconds(1100))
         guard !Task.isCancelled else { return }
+
+        for _ in unlockedAchievements {
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.65)) {
+                revealedBadges += 1
+            }
+            HapticManager.shared.unitCompleted()
+            try? await Task.sleep(for: .milliseconds(450))
+            guard !Task.isCancelled else { return }
+        }
 
         withAnimation(.easeInOut(duration: 0.5).repeatForever(autoreverses: true)) {
             showHint = true

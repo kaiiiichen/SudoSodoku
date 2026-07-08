@@ -37,9 +37,11 @@ struct SudoersInterstitial: View {
             Text(String(punchline.prefix(typedCount)))
                 .foregroundColor(.green)
                 .opacity(showPunchline ? 1 : 0)
-            Text(">> UNLOCKED: \(Achievement.incidentReported.title)")
-                .foregroundColor(.yellow)
-                .opacity(showAchievement ? 1 : 0)
+            if showAchievement {
+                AchievementBadge(achievement: .incidentReported)
+                    .padding(.top, 14)
+                    .transition(.scale(scale: 0.8).combined(with: .opacity))
+            }
         }
         .font(.system(size: 14, weight: .bold, design: .monospaced))
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
@@ -68,8 +70,9 @@ struct SudoersInterstitial: View {
         }
         try? await Task.sleep(for: .milliseconds(350))
         guard !Task.isCancelled, !finished else { return }
-        withAnimation(.easeIn(duration: 0.25)) { showAchievement = true }
-        try? await Task.sleep(for: .milliseconds(900))
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.65)) { showAchievement = true }
+        HapticManager.shared.unitCompleted()
+        try? await Task.sleep(for: .milliseconds(1200))
         finish()
     }
 
