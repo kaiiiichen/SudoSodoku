@@ -44,6 +44,7 @@ v2.0.0 is the release where SudoSodoku becomes what it always wanted to be: a fu
 
 ### Changed
 
+- Statistics tell the truth for a no-fail game: WIN_RATE is gone (boards are only finished or unfinished — abandoning isn't losing), BEST_EFF is demoted from the headline (it contradicted the fearless-undo philosophy); SYSTEM_OVERVIEW now shows SOLVED / ELO / FASTEST / HARDEST, and a personal best is the fastest solve (efficiency stays as per-record detail) (#46)
 - Puzzles now read as hand-crafted: each board picks an aesthetic clue-pattern style at random (180° rotational, horizontal/vertical mirror, diagonal, anti-diagonal, or deliberately free — hand-made collections vary, symmetry is common but not universal), and every difficulty has a technique identity enforced at generation — EASY solves with singles and always offers parallel moves, MEDIUM never demands more than locked candidates / naked pairs, HARD is designed around a required intermediate "aha" (and never needs more — no guessing), MASTER resists intermediate techniques entirely (#39)
 - Leaderboard submissions previously sent the puzzle difficulty index (0-100), which ranked players by generation luck; scores are now actual performance — solve time per difficulty, ELO on the global board (#11)
 - Set minimum deployment target to iOS 17.0 (aligned project and target settings)

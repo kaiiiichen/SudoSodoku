@@ -8,8 +8,8 @@ class StatisticsManager: ObservableObject {
     @Published var overallStats: OverallStats = OverallStats(
         totalGames: 0,
         solvedGames: 0,
-        totalUndos: 0,
-        bestLogicalEfficiency: 0
+        fastestSolve: nil,
+        hardestSolved: nil
     )
 
     private var cancellables = Set<AnyCancellable>()
@@ -27,20 +27,25 @@ class StatisticsManager: ObservableObject {
     }
 
     private func refresh(with records: [GameRecord]) {
+        // A personal best is the fastest timed solve; records from before
+        // time tracking (duration 0) fall back to the most efficient solve.
         var bests: [Difficulty: GameRecord] = [:]
         for difficulty in Difficulty.allCases {
-            bests[difficulty] = records
-                .filter { $0.difficulty == difficulty.rawValue && $0.isSolved }
-                .max { $0.logicalEfficiency < $1.logicalEfficiency }
+            let solved = records.filter { $0.difficulty == difficulty.rawValue && $0.isSolved }
+            bests[difficulty] = solved
+                .filter { $0.playDuration > 0 }
+                .min { $0.playDuration < $1.playDuration }
+                ?? solved.max { $0.logicalEfficiency < $1.logicalEfficiency }
         }
         personalBests = bests
 
         let solvedRecords = records.filter(\.isSolved)
+        let solvedDifficulties = Set(solvedRecords.compactMap { Difficulty(rawValue: $0.difficulty) })
         overallStats = OverallStats(
             totalGames: records.count,
             solvedGames: solvedRecords.count,
-            totalUndos: solvedRecords.reduce(0) { $0 + $1.undoCount },
-            bestLogicalEfficiency: solvedRecords.max { $0.logicalEfficiency < $1.logicalEfficiency }?.logicalEfficiency ?? 0
+            fastestSolve: solvedRecords.map(\.playDuration).filter { $0 > 0 }.min(),
+            hardestSolved: Difficulty.allCases.last { solvedDifficulties.contains($0) }
         )
     }
 

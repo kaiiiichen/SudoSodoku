@@ -66,14 +66,47 @@ final class StatisticsSyncTests: XCTestCase {
                        "Personal best must be recomputed from the just-changed records")
     }
 
+    // MARK: - Honest headline metrics (#46)
+
+    func testFastestAndHardestAggregation() {
+        StorageManager.shared.saveGame(makeRecord(solved: true, difficulty: .easy, duration: 300))
+        StorageManager.shared.saveGame(makeRecord(solved: true, difficulty: .hard, duration: 900))
+        StorageManager.shared.saveGame(makeRecord(solved: false, difficulty: .master, duration: 50))
+
+        let stats = StatisticsManager.shared.overallStats
+        XCTAssertEqual(stats.fastestSolve, 300, "Fastest counts solved boards only")
+        XCTAssertEqual(stats.hardestSolved, .hard, "Unsolved MASTER must not count as depth")
+    }
+
+    func testLegacyZeroDurationNeverWinsFastest() {
+        StorageManager.shared.saveGame(makeRecord(solved: true, duration: 0))
+        XCTAssertNil(StatisticsManager.shared.overallStats.fastestSolve,
+                     "Records from before time tracking must not claim a 0s fastest")
+    }
+
+    func testPersonalBestIsTheFastestSolveNotTheMostEfficient() {
+        let efficient = makeRecord(solved: true, undoCount: 0, duration: 800)
+        let fast = makeRecord(solved: true, undoCount: 20, duration: 200)
+        StorageManager.shared.saveGame(efficient)
+        StorageManager.shared.saveGame(fast)
+
+        XCTAssertEqual(StatisticsManager.shared.personalBests[.easy]?.id, fast.id,
+                       "Speed defines the personal best; efficiency is a per-record detail")
+    }
+
     // MARK: - Fixtures
 
-    private func makeRecord(solved: Bool, undoCount: Int = 0) -> GameRecord {
+    private func makeRecord(
+        solved: Bool,
+        undoCount: Int = 0,
+        difficulty: Difficulty = .easy,
+        duration: TimeInterval = 0
+    ) -> GameRecord {
         GameRecord(
             id: UUID(),
             startTime: Date(),
             lastPlayedTime: Date(),
-            difficulty: "EASY",
+            difficulty: difficulty.rawValue,
             difficultyIndex: 10,
             initialBoard: Array(repeating: 0, count: 81),
             solution: Array(repeating: 1, count: 81),
@@ -81,7 +114,8 @@ final class StatisticsSyncTests: XCTestCase {
             playerNotes: nil,
             isSolved: solved,
             ratingChange: nil,
-            undoCount: undoCount
+            undoCount: undoCount,
+            playDuration: duration
         )
     }
 }

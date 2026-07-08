@@ -31,30 +31,21 @@ struct PersonalBestRow: View {
                     HStack {
                         Image(systemName: "chart.line.uptrend.xyaxis")
                             .font(.system(size: 10))
-                            .foregroundColor(.green)
+                            .foregroundColor(LogicalEfficiencyStyle.color(for: record.logicalEfficiency))
                         Text("QUALITY: \(record.logicalQuality)")
                             .font(.system(size: 10, design: .monospaced))
                             .foregroundColor(.white)
-                    }
-                    if record.playDuration > 0 {
-                        HStack {
-                            Image(systemName: "stopwatch")
-                                .font(.system(size: 10))
-                                .foregroundColor(.green)
-                            Text("TIME: \(DateFormatting.playClock(record.playDuration))")
-                                .font(.system(size: 10, design: .monospaced))
-                                .foregroundColor(.white)
-                        }
                     }
                 }
 
                 Spacer()
 
+                // A personal best is the fastest solve; time is the headline.
                 VStack(spacing: 2) {
-                    Text("\(record.logicalEfficiency)")
+                    Text(record.playDuration > 0 ? DateFormatting.playClock(record.playDuration) : "--")
                         .font(.system(size: 14, weight: .bold, design: .monospaced))
-                        .foregroundColor(LogicalEfficiencyStyle.color(for: record.logicalEfficiency))
-                    Text("EFFICIENCY")
+                        .foregroundColor(.green)
+                    Text("BEST_TIME")
                         .font(.system(size: 8, design: .monospaced))
                         .foregroundColor(.gray)
                 }

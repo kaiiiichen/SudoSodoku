@@ -2,6 +2,7 @@ import SwiftUI
 
 struct StatsView: View {
     @ObservedObject private var stats = StatisticsManager.shared
+    @ObservedObject private var storage = StorageManager.shared
 
     var body: some View {
         ZStack {
@@ -9,11 +10,21 @@ struct StatsView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     sectionHeader("SYSTEM_OVERVIEW:")
+                    // No fail state means no "win rate": the honest headline
+                    // numbers are volume, rating, speed, and depth.
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                        StatCard(title: "TOTAL_GAMES", value: "\(stats.overallStats.totalGames)", icon: "gamecontroller")
                         StatCard(title: "SOLVED", value: "\(stats.overallStats.solvedGames)", icon: "checkmark.seal")
-                        StatCard(title: "WIN_RATE", value: winRateString, icon: "percent")
-                        StatCard(title: "BEST_EFF", value: "\(stats.overallStats.bestLogicalEfficiency)", icon: "bolt")
+                        StatCard(title: "ELO", value: "\(storage.userRating)", icon: "bolt.shield")
+                        StatCard(
+                            title: "FASTEST",
+                            value: stats.overallStats.fastestSolve.map(DateFormatting.playClock) ?? "--",
+                            icon: "stopwatch"
+                        )
+                        StatCard(
+                            title: "HARDEST",
+                            value: stats.overallStats.hardestSolved?.rawValue ?? "--",
+                            icon: "flame"
+                        )
                     }
 
                     sectionHeader("PERSONAL_BEST_RECORDS:")
@@ -105,7 +116,4 @@ struct StatsView: View {
         .cornerRadius(8)
     }
 
-    private var winRateString: String {
-        String(format: "%.0f%%", stats.overallStats.winRate * 100)
-    }
 }
