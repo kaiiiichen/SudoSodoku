@@ -67,20 +67,30 @@ struct LandingView: View {
     // MARK: - Sections
 
     private var identityRow: some View {
+        // Every auth state renders in the same fixed 30x30 avatar slot with a
+        // constant row height: signing in must swap pixels in place, never
+        // re-flow the layout under the whole screen.
         HStack {
-            if gcManager.isAuthenticated {
-                if let photo = gcManager.playerPhoto {
-                    photo.resizable().scaledToFit().frame(width: 30, height: 30).clipShape(Circle()).overlay(Circle().stroke(Color.green, lineWidth: 1))
+            Group {
+                if gcManager.isAuthenticated {
+                    if let photo = gcManager.playerPhoto {
+                        photo.resizable().scaledToFit()
+                            .clipShape(Circle())
+                            .overlay(Circle().stroke(Color.green, lineWidth: 1))
+                    } else {
+                        Image(systemName: "person.circle.fill").resizable().scaledToFit().foregroundColor(.green)
+                    }
                 } else {
-                    Image(systemName: "person.circle.fill").font(.system(size: 30)).foregroundColor(.green)
+                    Image(systemName: "person.circle").resizable().scaledToFit().foregroundColor(.gray)
                 }
-                Text("user: \(gcManager.playerName)").font(.system(size: 14, design: .monospaced)).foregroundColor(.green)
-            } else {
-                Image(systemName: "person.circle").font(.system(size: 30)).foregroundColor(.gray)
-                Text("user: guest").font(.system(size: 14, design: .monospaced)).foregroundColor(.gray)
             }
+            .frame(width: 30, height: 30)
+            Text("user: \(gcManager.isAuthenticated ? gcManager.playerName : "guest")")
+                .font(.system(size: 14, design: .monospaced))
+                .foregroundColor(gcManager.isAuthenticated ? .green : .gray)
             Spacer()
         }
+        .frame(height: 30)
         .padding(.top, 50).padding(.horizontal)
     }
 

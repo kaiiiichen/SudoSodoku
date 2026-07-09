@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Game Center sign-in no longer jolts the landing screen: the identity row renders every auth state in a fixed 30×30 avatar slot with a constant row height, so authentication swaps pixels in place instead of re-flowing the layout (#66)
+
 ---
 
 ## [2.0.0] - 2026-07-08
