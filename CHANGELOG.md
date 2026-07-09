@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Command-line caret stays solid under Reduce Motion instead of blinking; `DateFormatting.playClock` is now `nonisolated`, silencing the main-actor warning in StatsView (#64)
+- Game Center sign-in no longer jolts the landing screen: the identity row renders every auth state in a fixed 30×30 avatar slot with a constant row height, so authentication swaps pixels in place instead of re-flowing the layout (#66)
 
 ---
 
