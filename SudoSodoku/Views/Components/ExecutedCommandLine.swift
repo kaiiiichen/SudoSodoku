@@ -7,10 +7,11 @@ struct ExecutedCommandLine: View {
     let command: String
 
     var body: some View {
-        HStack(spacing: 0) {
-            Text("root@ios:~$ ").foregroundColor(.green)
-            Text(command).foregroundColor(.white)
-        }
-        .font(.system(size: 14, weight: .bold, design: .monospaced))
+        // Concatenated so an overlong command wraps as one continuous
+        // leading-aligned flow, not as fragments centered against each
+        // other (see TerminalCommandComposer.commandLine).
+        (Text("root@ios:~$ ").foregroundColor(.green)
+            + Text(command).foregroundColor(.white))
+            .font(.system(size: 14, weight: .bold, design: .monospaced))
     }
 }

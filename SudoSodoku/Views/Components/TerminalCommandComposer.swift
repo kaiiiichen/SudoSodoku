@@ -56,10 +56,16 @@ struct TerminalCommandComposer<Hero: View>: View {
         }
         .padding(.horizontal)
         .onAppear {
-            withAnimation(.easeInOut(duration: 0.6).repeatForever(autoreverses: true)) {
-                cursorVisible = false
-            }
             if isBooting { bootIn() }
+        }
+        .task {
+            // Hard on/off blink, like a real terminal caret. (The old fade
+            // relied on animating .opacity, which the concatenated command
+            // line can't express per-segment.)
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(600))
+                cursorVisible.toggle()
+            }
         }
     }
 
@@ -70,17 +76,23 @@ struct TerminalCommandComposer<Hero: View>: View {
             Text(awaitingComment)
                 .font(.system(size: 12, design: .monospaced))
                 .foregroundColor(.gray)
-            HStack(spacing: 0) {
-                Text("root@ios:~$ ").foregroundColor(.green)
-                Text(isBooting ? typedBase : baseCommand + " ").foregroundColor(.white)
-                Text(typedSuffix).foregroundColor(pickedOption?.color ?? .green)
-                Text("_")
-                    .foregroundColor(.green)
-                    .opacity(cursorVisible ? 1 : 0)
-            }
-            .font(.system(size: 17, weight: .bold, design: .monospaced))
+            commandLine
+                .font(.system(size: 17, weight: .bold, design: .monospaced))
         }
         .padding(.top, 24)
+    }
+
+    /// One concatenated Text, not an HStack of Texts: an overlong command
+    /// must wrap as a single continuous flow onto the next line (the way a
+    /// real terminal wraps). Separate Texts each wrap inside their own
+    /// bounds and get centered against each other - the command shatters
+    /// into stacked fragments. The cursor blinks by color (green/clear)
+    /// because view modifiers like .opacity can't target a segment.
+    private var commandLine: Text {
+        Text("root@ios:~$ ").foregroundColor(.green)
+            + Text(isBooting ? typedBase : baseCommand + " ").foregroundColor(.white)
+            + Text(typedSuffix).foregroundColor(pickedOption?.color ?? .green)
+            + Text("_").foregroundColor(cursorVisible ? .green : .clear)
     }
 
     private var completionSection: some View {

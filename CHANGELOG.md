@@ -66,6 +66,7 @@ v2.0.0 is the release where SudoSodoku becomes what it always wanted to be: a fu
 
 ### Fixed
 
+- Overlong terminal commands (e.g. `sudo sudosodoku breach --easy`) shattered into stacked fragments: the prompt was an HStack of separate Texts, so each segment wrapped inside its own bounds and got centered against the others. The command line is now one concatenated Text that wraps as a single continuous flow, like a real shell; the caret blinks hard on/off instead of fading (#60)
 - Solved records are now immutable history: restarting a solved puzzle from the archive (`sudo reboot`) or the in-game RETRY forked in place under the same record id, so the first autosave overwrote the completed run — the solve silently vanished from SOLVED counts, personal bests, and recent completions while the ELO it granted remained. Both paths now fork a fresh record; the original solve stays (#56)
 - Viewing a solved record (`cat solution`) re-saved it with a fresh `lastPlayedTime`, so merely looking at an old solve bumped it to today and reshuffled the archive order. Viewing is read-only now (#56)
 - First launch after install stared at a pale white screen until the first frame arrived: the auto-generated launch screen uses `systemBackground` (white in light mode) while the app itself is always dark. The launch screen now boots in the terminal background color, and the Game Center handshake waits a beat past the first frame so GameKit's first-run spin-up doesn't compete with the initial render
