@@ -11,6 +11,9 @@
   Kai mirrors GitHub issues into Linear — keep issue state accurate.
 - **Assign every new issue to `kaiiiichen`** (sole owner; there is no other
   agent/boss account).
+- **Every issue must carry at least one label.** Pick from the repo's existing
+  labels (`bug`, `enhancement`, `feature`, `documentation`, `game-center`,
+  `ux-*`, `release`, …); create a new label only when none fits.
 
 ## Project Facts
 
