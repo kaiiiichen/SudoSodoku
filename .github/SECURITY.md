@@ -6,8 +6,8 @@ We actively support security updates for the following versions:
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 1.0.x   | :white_check_mark: |
-| < 1.0   | :x:                |
+| 2.0.x   | :white_check_mark: |
+| < 2.0   | :x:                |
 
 ## Reporting a Vulnerability
 
@@ -68,15 +68,15 @@ If you're contributing code:
 
 #### Data Privacy
 
-* **Local Storage**: Game data is stored locally on device
-* **No Data Collection**: We don't collect user data
-* **Game Center**: Uses Apple's Game Center (subject to Apple's privacy policy)
+* **Local Storage**: All game data — history, rating, achievements — lives in a single local JSON file on device (`StorageManager`, atomic writes). Nothing is uploaded by the app itself
+* **No Data Collection**: No analytics, no tracking, no accounts, no third-party SDKs
+* **Game Center (optional)**: Signing in submits leaderboard scores (solve times, ELO) and achievement unlocks through Apple's Game Center, subject to Apple's privacy policy. The app is fully playable as a guest without it
 
 #### Permissions
 
 SudoSodoku requests minimal permissions:
 
-* **Game Center**: For user authentication and leaderboards (optional)
+* **Game Center**: For user authentication, leaderboards, and achievements (optional — never presented at launch)
 
 #### Third-Party Dependencies
 
@@ -97,7 +97,7 @@ None at this time. All known security issues will be listed here once resolved.
 Security updates will be:
 
 * Documented in CHANGELOG.md
-* Released as patch versions (e.g., 1.0.1, 1.0.2)
+* Released as patch versions (e.g., 2.0.1, 2.0.2)
 * Communicated through GitHub releases
 * Prioritized over feature development
 

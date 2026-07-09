@@ -15,56 +15,46 @@ Welcome! This document provides transparency into SudoSodoku's development proce
 
 ## 🗺️ Feature Roadmap
 
-### Planned Features
+### Planned Features (post-2.0)
 
-1. **Achievement System** 🏅
-2. **Global Leaderboard** 🌍 (Requires Apple Developer features)
-3. **Hint System** 💡
-4. **Tutorial Mode** 📚
-5. **Swift Charts Enhancements** 📊
-6. **iPad Support** 📱 (Deferred)
-7. **macOS Version** 💻
+1. **Hint System** 💡
+2. **Tutorial Mode** 📚
+3. **Swift Charts Enhancements** 📊
+4. **CRT scanlines + vignette** 📺 (#18, deferred from v2.0 by subtraction)
+5. **Mechanical keyboard sounds, opt-in** ⌨️ (#19, deferred from v2.0 by subtraction)
+6. **iPad Support** 📱 (Deferred indefinitely)
+7. **macOS Version** 💻 (Deferred indefinitely)
 8. **Custom Themes** 🎨
 9. **Variant Sudoku** 🔀
 10. **AI Features** 🤖
 
 ### Shipped Features
 
+#### v2.0 — the ladder, the feel, the fantasy
+
+**Status**: Shipped (see [CHANGELOG.md](CHANGELOG.md) `[2.0.0]` for the full list)
+
+- **Achievement system** 🏅 — twelve binary unlocks incl. one secret, Game Center reporting with an offline queue (`AchievementManager`)
+- **Game Center leaderboards** 🌍 — global ELO plus per-difficulty fastest-time boards; guest play fully supported
+- **Hand-crafted-feel generator** — aesthetic clue patterns + per-difficulty technique identity
+- **Completion time tracking** — active-time play clock, personal bests by fastest solve
+- **Streak indicator**, semantic haptics, breach-log loading, matrix-rain victory sequence
+- **Honest statistics** — no win rate in a no-fail game; SOLVED / ELO / FASTEST / HARDEST
+- **One continuous command line** — accumulating `sudo sudosodoku` navigation with a boot-in on launch
+
 #### Detailed Statistics 📊 (v1.0)
 
 **Status**: Shipped (baseline)
 
-- `StatisticsManager` with personal bests, win rate, difficulty distribution, recent completions
+- `StatisticsManager` with personal bests, difficulty distribution, recent completions
 - `StatsView` dashboard
 - Logical efficiency scoring based on undo count
-
-**Future enhancements (v1.1+)**:
-
-- Completion time tracking
-- Swift Charts progress visualization
-- Streak tracking (daily/weekly/monthly)
 
 ### Feature Details
 
 #### 1. Achievement System 🏅
 
-**Priority**: High | **Version**: v1.1 | **Complexity**: Medium
-
-**Features:**
-
-- Completion achievements
-- Difficulty achievements
-- Speed achievements
-- Streak achievements
-- Rating achievements
-- Technique achievements
-
-**Implementation:**
-
-- New `AchievementManager` class
-- Achievement definitions (Codable)
-- Progress tracking
-- Game Center integration
+**Status**: ✅ Shipped in v2.0 — `AchievementManager` + `Achievement` model, twelve binary unlocks (completion counts, first MASTER, zero-undo, sub-3-minute, rank tiers, one secret), Game Center reporting with an offline queue, unlocks rendered inside the victory sequence.
 
 ---
 
@@ -86,21 +76,7 @@ Welcome! This document provides transparency into SudoSodoku's development proce
 
 #### 3. Global Leaderboard 🌍
 
-**Priority**: Medium | **Version**: v1.3 | **Complexity**: High
-
-**Features:**
-
-- ELO leaderboard
-- Category leaderboards
-- Friend rankings
-- Regional rankings
-- Historical rankings
-
-**Requirements:**
-
-- Paid Apple Developer Account
-- Game Center configuration
-- CloudKit setup
+**Status**: ✅ Shipped in v2.0 — Game Center global ELO ranking plus per-difficulty fastest-time boards, terminal-styled `LeaderboardView` (`cat /leaderboard`), `GKAccessPoint` fallback, guest sign-in notice. No CloudKit needed. Friend/regional/historical rankings remain future ideas.
 
 ---
 

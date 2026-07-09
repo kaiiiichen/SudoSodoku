@@ -27,10 +27,16 @@ v2.0.0 is the release where SudoSodoku becomes what it always wanted to be: a fu
 - An optional play clock that only counts active time; personal bests and archives show durations.
 - Every animation respects Reduce Motion. Sounds are never forced on.
 
+## The whole app is one command line ⌨️
+
+- Navigation reads as a single accumulating shell session: the landing terminal boots in (`root@ios:~$ ` types `sudo sudosodoku` on launch), picking `breach`, `archives`, `stats`, or `whoami` types the subcommand into the prompt, and every screen echoes the full command it was reached with.
+- Even the launch screen speaks terminal: the first frame after install boots in the phosphor-dark background instead of a white flash.
+
 ## Fixed
 
 - EASY boards can no longer stall you: the grader now understands column/box logic, clue distribution is guaranteed, and every step offers at least two ways forward.
 - Profile statistics stay in lockstep with your archive (previously they lagged by one change).
+- Your history is safe: restarting or replaying a solved puzzle forks a fresh attempt instead of overwriting the completed run, and viewing an old solution no longer bumps its date.
 
 ---
 

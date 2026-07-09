@@ -9,22 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-
-- The landing terminal boots in on launch: `sudo sudosodoku` types itself into the prompt and the tab-completion menu materializes once the command lands — once per process, so back-navigations get the materialized prompt; silent (no keystroke haptics) and instant under Reduce Motion (#54)
-
-### Changed
-
-- Every screen entered from the landing page now reads as one continuous, accumulating shell command instead of separate button taps: picking `breach`, `archives`, `stats`, or `whoami` types the subcommand into the prompt before navigating, and the destination screen echoes the full command (e.g. `sudo sudosodoku breach --easy`) it was reached with (#47)
-- Mode selection's tab-completion menu is pushed further down the screen instead of sitting directly under the prompt (#47)
-- Command-line branding renamed from `sudo sodoku` to `sudo sudosodoku` everywhere the literal command appears: the landing hero title, the composer's base command, and every echoed command header (#51)
-
-### Fixed
-
-- Solved records are now immutable history: restarting a solved puzzle from the archive (`sudo reboot`) or the in-game RETRY forked in place under the same record id, so the first autosave overwrote the completed run — the solve silently vanished from SOLVED counts, personal bests, and recent completions while the ELO it granted remained. Both paths now fork a fresh record; the original solve stays
-- Viewing a solved record (`cat solution`) re-saved it with a fresh `lastPlayedTime`, so merely looking at an old solve bumped it to today and reshuffled the archive order. Viewing is read-only now
-- First launch after install stared at a pale white screen until the first frame arrived: the auto-generated launch screen uses `systemBackground` (white in light mode) while the app itself is always dark. The launch screen now boots in the terminal background color, so even the slow first launch (code-sign verification, cold caches — system costs the app can't remove) reads as the terminal warming up instead of a white hang. The Game Center handshake also waits a beat past the first frame so GameKit's first-run spin-up doesn't compete with the initial render
-
 ---
 
 ## [2.0.0] - 2026-07-08
@@ -37,6 +21,7 @@ v2.0.0 is the release where SudoSodoku becomes what it always wanted to be: a fu
 
 ### Added
 
+- The landing terminal boots in on launch: `sudo sudosodoku` types itself into the prompt and the tab-completion menu materializes once the command lands — once per process, so back-navigations get the materialized prompt; silent (no keystroke haptics) and instant under Reduce Motion (#54)
 - Completion time tracking: play clock accumulates active time per game, pauses in the background and freezes on victory; terminal-style `T+MM:SS` timer in the game header (toggleable via the game menu), duration shown on victory, in archive rows, and in personal bests (#4)
 - Auto-clear pencil notes: placing a number removes that digit from notes in the same row, column, and box; undo/redo treats the placement and cleared notes as one compound move (#5)
 - Numpad digit keys dim and strike through once all nine instances of a digit are placed; undo/clear revives them (#6)
@@ -59,6 +44,9 @@ v2.0.0 is the release where SudoSodoku becomes what it always wanted to be: a fu
 
 ### Changed
 
+- Every screen entered from the landing page now reads as one continuous, accumulating shell command instead of separate button taps: picking `breach`, `archives`, `stats`, or `whoami` types the subcommand into the prompt before navigating, and the destination screen echoes the full command (e.g. `sudo sudosodoku breach --easy`) it was reached with (#47)
+- Mode selection's tab-completion menu is pushed further down the screen instead of sitting directly under the prompt (#47)
+- Command-line branding renamed from `sudo sodoku` to `sudo sudosodoku` everywhere the literal command appears: the landing hero title, the composer's base command, and every echoed command header (#51)
 - Statistics tell the truth for a no-fail game: WIN_RATE is gone (boards are only finished or unfinished — abandoning isn't losing), BEST_EFF is demoted from the headline (it contradicted the fearless-undo philosophy); SYSTEM_OVERVIEW now shows SOLVED / ELO / FASTEST / HARDEST, and a personal best is the fastest solve (efficiency stays as per-record detail) (#46)
 - Puzzles now read as hand-crafted: each board picks an aesthetic clue-pattern style at random (180° rotational, horizontal/vertical mirror, diagonal, anti-diagonal, or deliberately free — hand-made collections vary, symmetry is common but not universal), and every difficulty has a technique identity enforced at generation — EASY solves with singles and always offers parallel moves, MEDIUM never demands more than locked candidates / naked pairs, HARD is designed around a required intermediate "aha" (and never needs more — no guessing), MASTER resists intermediate techniques entirely (#39)
 - Leaderboard submissions previously sent the puzzle difficulty index (0-100), which ranked players by generation luck; scores are now actual performance — solve time per difficulty, ELO on the global board (#11)
@@ -78,6 +66,9 @@ v2.0.0 is the release where SudoSodoku becomes what it always wanted to be: a fu
 
 ### Fixed
 
+- Solved records are now immutable history: restarting a solved puzzle from the archive (`sudo reboot`) or the in-game RETRY forked in place under the same record id, so the first autosave overwrote the completed run — the solve silently vanished from SOLVED counts, personal bests, and recent completions while the ELO it granted remained. Both paths now fork a fresh record; the original solve stays (#56)
+- Viewing a solved record (`cat solution`) re-saved it with a fresh `lastPlayedTime`, so merely looking at an old solve bumped it to today and reshuffled the archive order. Viewing is read-only now (#56)
+- First launch after install stared at a pale white screen until the first frame arrived: the auto-generated launch screen uses `systemBackground` (white in light mode) while the app itself is always dark. The launch screen now boots in the terminal background color, and the Game Center handshake waits a beat past the first frame so GameKit's first-run spin-up doesn't compete with the initial render
 - The secret INCIDENT_REPORTED achievement wasn't actually secret: the profile wall listed its title with only the description masked. Hidden achievements are now entirely absent from the wall until earned, matching Game Center's Hidden semantics
 - Profile (WHOAMI) statistics desynced from storage: `@Published` emits on willSet, and the stats refresh read the records back through the singleton — always one mutation behind. Zeros stuck on a fresh launch, numbers survived the debug wipe, and only playing a move "fixed" them. Stats now derive from the emitted value (#41)
 - Achievement unlocks had no visible feedback: the toast raced the victory overlay and could expire unseen behind the matrix rain. Unlocks now render inside the victory sequence itself (`>> UNLOCKED: ...` under the ELO ticker), and the sudoers interstitial types out its own secret-achievement line — the separate toast and its cross-view choreography are gone
