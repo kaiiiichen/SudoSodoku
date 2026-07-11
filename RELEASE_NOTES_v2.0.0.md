@@ -37,6 +37,8 @@ v2.0.0 is the release where SudoSodoku becomes what it always wanted to be: a fu
 - EASY boards can no longer stall you: the grader now understands column/box logic, clue distribution is guaranteed, and every step offers at least two ways forward.
 - Profile statistics stay in lockstep with your archive (previously they lagged by one change).
 - Your history is safe: restarting or replaying a solved puzzle forks a fresh attempt instead of overwriting the completed run, and viewing an old solution no longer bumps its date.
+- Statistics never judge a solve by its undo count: undo is a thinking tool, not a penalty, and every stat that implied otherwise is gone.
+- Terminal polish throughout: the command line holds a stable two-line slot, quick swipe-backs can't strand a stale command, the hero glow survives navigation, Game Center sign-in swaps pixels in place, and the caret respects Reduce Motion.
 
 ---
 

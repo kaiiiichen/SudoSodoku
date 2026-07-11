@@ -9,15 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
-
-- Swiping back right after picking a tab-completion option no longer strands the screen: composer reset now keys off the navigation binding (which always clears on pop) instead of `onAppear` (which never fires when the pop lands mid-push-transition), so the landing and mode-selection screens can't come back with a stale command and every option dead (#79)
-- An overlong composed command no longer shoves the layout around: the terminal command line reserves a two-line slot up front, so wrapping happens inside it and the hero, tagline, and completion menu stay put on the landing and mode-selection screens (#78)
-- Stats no longer judge solves by undo count anywhere: personal best rows drop UNDOS/QUALITY for date set and rating gain, recent completions show the solve time instead of the undo-derived EFF score, and the legacy personal-best fallback (pre-time-tracking records) picks the most recent solve instead of the fewest undos; the dead `logicalEfficiency`/`logicalQuality` metrics are removed (#77)
-- The landing hero's glow pulse survives navigation: it restarts on every return to the landing screen instead of freezing dim after the first push; steady full glow under Reduce Motion (#68)
-- Game Center sign-in no longer jolts the landing screen: the identity row renders every auth state in a fixed 30×30 avatar slot with a constant row height, so authentication swaps pixels in place instead of re-flowing the layout (#66)
-- Command-line caret stays solid under Reduce Motion instead of blinking; `DateFormatting.playClock` is now `nonisolated`, silencing the main-actor warning in StatsView (#64)
-
 ---
 
 ## [2.0.0] - 2026-07-08
@@ -75,6 +66,12 @@ v2.0.0 is the release where SudoSodoku becomes what it always wanted to be: a fu
 
 ### Fixed
 
+- Swiping back right after picking a tab-completion option no longer strands the screen: composer reset now keys off the navigation binding (which always clears on pop) instead of `onAppear` (which never fires when the pop lands mid-push-transition), so the landing and mode-selection screens can't come back with a stale command and every option dead (#79)
+- An overlong composed command no longer shoves the layout around: the terminal command line reserves a two-line slot up front, so wrapping happens inside it and the hero, tagline, and completion menu stay put on the landing and mode-selection screens (#78)
+- Stats no longer judge solves by undo count anywhere: personal best rows drop UNDOS/QUALITY for date set and rating gain, recent completions show the solve time instead of the undo-derived EFF score, and the legacy personal-best fallback (pre-time-tracking records) picks the most recent solve instead of the fewest undos; the dead `logicalEfficiency`/`logicalQuality` metrics are removed (#77)
+- The landing hero's glow pulse survives navigation: it restarts on every return to the landing screen instead of freezing dim after the first push; steady full glow under Reduce Motion (#68)
+- Game Center sign-in no longer jolts the landing screen: the identity row renders every auth state in a fixed 30×30 avatar slot with a constant row height, so authentication swaps pixels in place instead of re-flowing the layout (#66)
+- Command-line caret stays solid under Reduce Motion instead of blinking; `DateFormatting.playClock` is now `nonisolated`, silencing the main-actor warning in StatsView (#64)
 - Overlong terminal commands (e.g. `sudo sudosodoku breach --easy`) shattered into stacked fragments: the prompt was an HStack of separate Texts, so each segment wrapped inside its own bounds and got centered against the others. The command line is now one concatenated Text that wraps as a single continuous flow, like a real shell; the caret blinks hard on/off instead of fading (#60)
 - Solved records are now immutable history: restarting a solved puzzle from the archive (`sudo reboot`) or the in-game RETRY forked in place under the same record id, so the first autosave overwrote the completed run — the solve silently vanished from SOLVED counts, personal bests, and recent completions while the ELO it granted remained. Both paths now fork a fresh record; the original solve stays (#56)
 - Viewing a solved record (`cat solution`) re-saved it with a fresh `lastPlayedTime`, so merely looking at an old solve bumped it to today and reshuffled the archive order. Viewing is read-only now (#56)
