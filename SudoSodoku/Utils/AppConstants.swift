@@ -21,10 +21,11 @@ enum AppConstants {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "2.0.0"
     }
 
-    /// Privacy policy served from the public repository; App Review
-    /// Guideline 5.1.1(i) requires it reachable from inside the app, and it
-    /// must match the URL declared in App Store Connect.
-    static let privacyPolicyURL = URL(string: "https://github.com/SudoSodokuApp/SudoSodoku/blob/main/PRIVACY.md")!
+    /// Privacy policy on the product site (rendered from the repository's
+    /// PRIVACY.md); App Review Guideline 5.1.1(i) requires it reachable from
+    /// inside the app, and it must match the URL declared in App Store
+    /// Connect.
+    static let privacyPolicyURL = URL(string: "https://sudosodoku.kaichen.dev/privacy")!
 
     static func leaderboardID(for difficulty: String) -> String {
         switch difficulty.lowercased() {

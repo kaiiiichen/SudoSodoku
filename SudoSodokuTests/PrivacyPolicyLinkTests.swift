@@ -9,7 +9,7 @@ final class PrivacyPolicyLinkTests: XCTestCase {
     func testPrivacyPolicyURLMatchesAppStoreConnectDeclaration() {
         XCTAssertEqual(
             AppConstants.privacyPolicyURL.absoluteString,
-            "https://github.com/SudoSodokuApp/SudoSodoku/blob/main/PRIVACY.md"
+            "https://sudosodoku.kaichen.dev/privacy"
         )
     }
 
