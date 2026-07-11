@@ -128,7 +128,7 @@ struct LandingView: View {
                 }
 
             Text("KERNEL_V\(AppConstants.marketingVersion)").font(.system(size: 14, design: .monospaced)).foregroundColor(.gray).padding(.top, 5)
-            Text("// root access for logical purists")
+            Text("// logic is root access")
                 .font(.system(size: 12, design: .monospaced))
                 .foregroundColor(.green.opacity(0.55))
                 .padding(.top, 2)

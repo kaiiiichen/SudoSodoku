@@ -5,7 +5,7 @@ $ sudo solve
 > root access granted.
 ```
 
-**sudo solve — root access for logical purists.**
+**sudo solve — logic is root access.**
 
 v2.0.0 is the release where SudoSodoku becomes what it always wanted to be: a full terminal fantasy with a real competitive ladder.
 

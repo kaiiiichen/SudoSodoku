@@ -8,7 +8,7 @@ root@ios:~$ sudo sudosodoku breach --master
 > ACCESS GRANTED
 ```
 
-**`sudo solve` — root access for logical purists.**
+**`sudo solve` — logic is root access.**
 
 SudoSodoku is the only sudoku on the App Store that treats you like root. It is a full terminal fantasy: green phosphor on deep dark glass, mechanical-keyboard haptics, and an ELO ladder that climbs from `SCRIPT_KIDDIE` to `THE_ARCHITECT`. You are not filling in numbers — you are breaching a grid, and every victory ends the only way it should: `ACCESS GRANTED`.
 
