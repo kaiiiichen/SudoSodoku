@@ -89,6 +89,7 @@ v2.0.0 is the release where SudoSodoku becomes what it always wanted to be: a fu
 - Dead Game Center UI helpers, unused haptic methods, and unused statistics trend code
 - Duplicate `run.sh` script (use `play.sh` as the canonical simulator runner)
 - Committed build artifacts (`SudoSodoku.xcarchive/`, `IPA/`) from version control
+- Tracked per-user state files (`UserInterfaceState.xcuserstate`, two `.DS_Store`) from version control — the ignore rules already covered them, but they were added before those rules existed and kept polluting every working tree
 
 ---
 
