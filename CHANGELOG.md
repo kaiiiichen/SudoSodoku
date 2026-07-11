@@ -41,6 +41,7 @@ v2.0.0 is the release where SudoSodoku becomes what it always wanted to be: a fu
 - Shared `SudoSodoku` scheme with test action, enabling `xcodebuild test` and Xcode Cloud test workflows
 - Product identity: slogan "sudo solve — logic is root access" (#93), four-pillar philosophy in the README, and the tagline on the landing screen
 - Public privacy policy (`PRIVACY.md`), written against App Review Guideline 5.1.1(i) and Apple's App Privacy Details guidance: all game data is local-only, the sole online service is Apple-operated Game Center, no analytics/ads/tracking; linked from the README and used as the App Store privacy policy URL (#90)
+- In-app privacy policy access: a quiet `cat /privacy` row on the whoami screen opens PRIVACY.md in the browser, satisfying Guideline 5.1.1(i)'s in-app accessibility requirement; the URL is pinned to the App Store Connect declaration by a unit test (#91)
 - Debug builds only: `$ rm -rf /user_data` factory reset in the profile (records, rating, achievements, sudoers-joke flag, and Game Center achievement progress via `resetAchievements`) for verifying first-run flows; compiled out of Release
 
 ### Changed
