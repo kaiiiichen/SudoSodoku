@@ -74,6 +74,8 @@ struct UserProfileView: View {
                         }
                     }.padding().background(Color.white.opacity(0.05)).cornerRadius(12).padding(.horizontal)
 
+                    privacyLink
+
                     #if DEBUG
                     debugWipeButton
                     #endif
@@ -83,6 +85,25 @@ struct UserProfileView: View {
             }
         }
         .navigationBarTitleDisplayMode(.inline)
+    }
+
+    /// Opens the privacy policy in the browser. Quiet by design: a secondary
+    /// footer action, not a green primary like `cat /leaderboard`.
+    private var privacyLink: some View {
+        Link(destination: AppConstants.privacyPolicyURL) {
+            HStack {
+                Image(systemName: "lock.shield")
+                Text("cat /privacy")
+            }
+            .font(.system(size: 14, weight: .bold, design: .monospaced))
+            .foregroundColor(.gray)
+            .padding(.vertical, 12)
+            .frame(maxWidth: .infinity)
+            .background(Color.white.opacity(0.05))
+            .cornerRadius(12)
+            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.gray.opacity(0.35), lineWidth: 1))
+        }
+        .padding(.horizontal)
     }
 
     #if DEBUG
