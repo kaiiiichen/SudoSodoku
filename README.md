@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="SudoSodoku/AppIcon_V3.png" width="128" height="128" alt="SudoSodoku logo">
+</p>
+
 # **SudoSodoku**
 
 ```
